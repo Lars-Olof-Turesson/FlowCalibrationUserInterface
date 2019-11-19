@@ -7,6 +7,7 @@ namespace Model
 {
     /// <summary>
     /// MotorControl - Controls the motor with a list of position and times or velocity and times.
+    /// Added comment just for test
     /// </summary>
     public class MotorControl
     {
