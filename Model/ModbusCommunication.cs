@@ -17,8 +17,10 @@ namespace Model
 
         public ModbusCommunication(String portName)
         {
+            // Creae an instance of a serial port
             SerialPort serialPort = new SerialPort()
             {
+                // Settings for the serial port
                 PortName = portName,
                 BaudRate = 57600,
                 DataBits = 8,
@@ -28,12 +30,12 @@ namespace Model
                 ReadTimeout = 20,
                 WriteTimeout = 20
             };
-
+            // Open up a serial port
             serialPort.Open();
             
         
 		    var adapter = new SerialPortAdapter(serialPort);
-            // create modbus master
+            // Create modbus master
             Master = ModbusSerialMaster.CreateRtu(adapter);
         }
 
@@ -53,6 +55,7 @@ namespace Model
             throw new System.ArgumentException("No device found");*/
         }
 
+        // Function for running the Modbus communication for int32 data
         public void RunModbus(ushort registerStartAddress, Int32 data)
         {
             // For Int32 data (Double registers)
@@ -90,6 +93,8 @@ namespace Model
             }
             catch (System.TimeoutException) { }
         }
+
+        // Function for running the Modbus communication for int16 data
         public void RunModbus(ushort registerStartAddress, Int16 data)
         {
             // For Int16 data (Single register)
@@ -109,7 +114,8 @@ namespace Model
             catch (System.TimeoutException) { }
         }
 
-		public void RunModbus(ushort registerStartAddress, ushort data)
+        // Function for running the Modbus communication for ushort data
+        public void RunModbus(ushort registerStartAddress, ushort data)
 		{
 			// For Int16 data (Single register)
 			if (registerStartAddress == 0)
@@ -126,11 +132,13 @@ namespace Model
                 Master.WriteMultipleRegisters(slaveAddress, startAddress, dataUShort);
             }
             catch (System.TimeoutException) { }
-		}
+        }
   
+        // FUnction for reading from the Modbus
+        // Reads nrOfRegisters amount of registers and returns thier combined data as an int
         public int ReadModbus(ushort registerStartAddress, ushort nrOfRegisters, Boolean signedValue)
         {
-            // Reads nrOfRegisters amount of registers and returns thier combined data as an int
+            // Variable for data to return
             int returnData;
 
             if (registerStartAddress == 0)
@@ -174,6 +182,7 @@ namespace Model
             return returnData;
         }
 
+        // End the Modbus communication
         public void EndModbus()
         {
             Master.Dispose();
