@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 
+// Nanmespace is a way of organizing code in C#, just like directories in a computer. This namespace
+// contains everything related to converting between volume/flow and position/speed.
 namespace Model
 {
     public class ProfileConverter
 	// ProfileConverter - Contains functions for converting between flow and volume and flow to position and velocity.
 	//					  Needs parameters related to the mechanical construction, syringe diameter                    
     // Units
-    // Position [cm]
-    // Velocity [cm/s]
+    // Position [mm]
+    // Velocity [mm/s]
     // Flow     [ml/s]
     // Volume   [ml]
     {
@@ -18,10 +20,11 @@ namespace Model
 
         public ProfileConverter()
         {
-            SyringeDiameter = 3.4; // [cm]
-            SectionArea = Math.Pow((SyringeDiameter / 2), 2) * Math.PI; // [cm^2]
+            SyringeDiameter = 34; // [mm]
+            SectionArea = Math.Pow((SyringeDiameter / 2), 2) * Math.PI; // [mm^2]
         }
 
+        // Function to get flow [ml/s] from positons [mm]
         public List<double> FlowToPosition(List<double> times, List<double> flows)
         {
             List<double> positions = new List<double>();
@@ -34,6 +37,7 @@ namespace Model
             return positions;
         }
 
+        // Function to get flow [ml/s] from velocities [mm]
         public List<double> FlowToVelocity(List<double> flows)
         {
             List<double> velocity = new List<double>();
@@ -43,6 +47,7 @@ namespace Model
             return velocity;
         }
 
+        // Function to get volume [ml] from positions [mm]
         public List<double> PositionToVolume(List<double> positions)
         {
             List<double> volumes = new List<double>();
@@ -52,6 +57,21 @@ namespace Model
             return volumes;
         }
 
+        // Function to get flow [ml/s] from positions [mm]
+        public List<Double> PositionToFlow(List<Double> positions, List<Double> times)
+        {
+            List<double> flows = new List<double>();
+            for (int i = 1; i < positions.Count(); i++)
+            {
+                Double deltaPosition = positions[i] - positions[i - 1];
+                Double deltaTime = times[i] - times[i - 1];
+                flows.Add((deltaPosition / deltaTime) * SectionArea);
+            }
+
+            return flows;
+        }
+
+        // Function to get flow [ml] from velocitiies [mm/s]
         public List<double> VelocityToFlow(List<double> velocities)
         {
             List<double> flows = new List<double>();
@@ -60,11 +80,14 @@ namespace Model
             }
             return flows;
         }
-        // INTEGRATION
+
+
+        // Function to perform integration on given profile/graph.
+        // The first value is lost.
+        // How big is the error on the integration????????????????
         static List<double> Integrate(List<double> x, List<double> y)
         {
-            // calculate the integral of list y
-            // first value is lost; length of list is one shorter
+            // Throw an error if the given lists are not of equl length
             if (x.Count() != y.Count())
             {
                 throw new Exception("Input lists not of equal length");
@@ -78,18 +101,6 @@ namespace Model
                 primitive.Add(areaForward);
             }
             return primitive;
-        }
-
-        public List<Double> PositionToFlow(List<Double> positions, List<Double> times)
-        {
-            List<double> flows = new List<double>();
-            for (int i = 1; i < positions.Count(); i++){
-                Double deltaPosition = positions[i] - positions[i - 1];
-                Double deltaTime = times[i] - times[i - 1];
-                flows.Add((deltaPosition/deltaTime)*SectionArea);
-            }
-
-            return flows;
         }
     }
 }
