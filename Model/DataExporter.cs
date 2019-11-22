@@ -5,19 +5,27 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+// Nanmespace is a way of organizing code in C#, just like directories in a computer. This namespace
+// contains everything related to exporting the recorded data to a csv-file and importing data from
+// a csv-file.
 namespace Model
 {
+    // A class for exporting data to a csv-file
     public class DataExporter
     {
+        // Function for saving time and given values in a csv-file at the given filepath
         public static void SaveTimeAndValuesToCsv(IList<Double> times, IList<Double> values, String filePath)
         {
+            // Throw an error if the number of values is not equal to the number of times 
             if (times.Count() != values.Count())
             {
                 throw new Exception("Input lists not of equal length");
             }
 
+            // Create a stringbuilder
             StringBuilder stringBuilder = new StringBuilder();
 
+            // Read the data and convert to strings
             for(int i=0; i< values.Count(); i++)
             {
                 String time = times[i].ToString(CultureInfo.InvariantCulture);
@@ -26,9 +34,11 @@ namespace Model
                 stringBuilder.AppendLine(line);
             }
 
+            // Create the csv-file
             File.WriteAllText(filePath, stringBuilder.ToString());
         }
 
+        // Function to load values from a given csv-file.
         public static void LoadTimeAndValuesFromCsv(IList<Double> times, IList<Double> values, String filePath)
         {
             times.Clear();

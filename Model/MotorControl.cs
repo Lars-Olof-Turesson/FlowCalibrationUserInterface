@@ -5,7 +5,7 @@ using System.Linq;
 using System.Diagnostics;
 
 // Nanmespace is a way of organizing code in C#, just like directories in a computer. This namespace
-// contains everything related to running the motor, reading inputs and writing outputs
+// contains everything related to running the motor, reading inputs and writing outputs.
 namespace Model
 {
     /// <summary>
