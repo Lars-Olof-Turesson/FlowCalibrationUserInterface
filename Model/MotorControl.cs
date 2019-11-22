@@ -44,7 +44,7 @@ namespace Model
             public const Int16  MaxTorque = 200;             // Maximum allowed torque [mNm]
         }
 
-        // Creates a struct for all registers in the motor
+        // Defines a struct for all registers in the motor
         public struct Register
         {
             // DEFINE REGISTERS related to motor drive, inputs and outputs
@@ -72,6 +72,8 @@ namespace Model
             public const ushort EventDstReg     = 780;      // Event Destination Register   (see p.12 in manual)
 
         }
+
+        // Defines a struct for the motor modes
         struct Mode
         {
             public const Int16 PositionRamp = 21;   // PositionRamp(Mode 21) : Closed control of position with ramp control.
