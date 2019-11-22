@@ -78,7 +78,7 @@
                     </Grid.RowDefinitions>
                     
                     <StackPanel>
-                        <TextBlock Text="Data Control" Style="{StaticResource largeText}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Data Control 2019" Style="{StaticResource largeText}" HorizontalAlignment="Center"/>
                         <ComboBox Name="Profiles_ComboBox" SelectedValuePath="Content" Margin="20" ItemsSource="{Binding FlowProfileNames}" SelectionChanged="Profiles_ComboBox_SelectionChanged"/>
                     </StackPanel>
 
