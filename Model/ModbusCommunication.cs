@@ -5,6 +5,8 @@ using Modbus.Serial;
 using System.Management;
 using System.Collections.Generic;
 
+// Nanmespace is a way of organizing code in C#, just like directories in a computer. This namespace
+// contains everything related to the Modbus Communication
 namespace Model
 {
     public class ModbusCommunication

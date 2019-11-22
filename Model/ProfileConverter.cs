@@ -30,19 +30,19 @@ namespace Model
             List<double> positions = new List<double>();
             List<double> volume = Integrate(times,flows);
 
-            positions.Add((volume[0] / SectionArea));
+            positions.Add((volume[0] * 1000 / SectionArea));
             for (int i = 1; i <= volume.Count()-1; i++){
-                positions.Add((volume[i] / SectionArea)+positions[i-1]);
+                positions.Add((volume[i] * 1000 / SectionArea)+positions[i-1]);
             }
             return positions;
         }
 
-        // Function to get flow [ml/s] from velocities [mm]
+        // Function to get flow [ml/s] from velocities [mm/s]
         public List<double> FlowToVelocity(List<double> flows)
         {
             List<double> velocity = new List<double>();
             for (int i = 0; i < flows.Count(); i++){
-                velocity.Add(flows[i]/SectionArea);
+                velocity.Add(flows[i] * 1000 /SectionArea);
             }
             return velocity;
         }
@@ -52,7 +52,7 @@ namespace Model
         {
             List<double> volumes = new List<double>();
             for (int i = 0; i < positions.Count(); i++){
-                volumes.Add(positions[i]*SectionArea);
+                volumes.Add(positions[i]*SectionArea / 1000);
             }
             return volumes;
         }
@@ -65,7 +65,7 @@ namespace Model
             {
                 Double deltaPosition = positions[i] - positions[i - 1];
                 Double deltaTime = times[i] - times[i - 1];
-                flows.Add((deltaPosition / deltaTime) * SectionArea);
+                flows.Add((deltaPosition / deltaTime) * SectionArea / 1000);
             }
 
             return flows;
@@ -76,7 +76,7 @@ namespace Model
         {
             List<double> flows = new List<double>();
             for (int i = 0; i < velocities.Count(); i++){
-                flows.Add(velocities[i]*SectionArea);
+                flows.Add(velocities[i]*SectionArea / 1000);
             }
             return flows;
         }
