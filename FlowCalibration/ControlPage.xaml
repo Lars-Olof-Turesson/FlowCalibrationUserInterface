@@ -127,7 +127,7 @@
                     </oxy:Plot>
 
 
-                    <StackPanel Grid.Row="2">
+                    <StackPanel Grid.Row="2" HorizontalAlignment="Left" Width="148">
                         <TextBlock Text="Serial port: " Style="{StaticResource smallText}" Margin="20,0"/>
                         <TextBox Name="COM_port_TextBox" Text="{Binding PortName}" Style="{StaticResource textBox}" Margin="20 0 50 0"/>
                         <!--<ComboBox Name="COMPort_Combobox" SelectedValuePath="Content" Margin="20,0"/>-->
