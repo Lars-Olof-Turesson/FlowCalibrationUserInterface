@@ -48,21 +48,31 @@ namespace Model
         public struct Register
         {
             // DEFINE REGISTERS related to motor drive, inputs and outputs
-            public const ushort TargetInput     = 450;      // Regulator target
-            public const ushort Position        = 200;      // Motor position           [ticks]
-            public const ushort Speed           = 202;      // Motor speed              [positions/sec/16]
-            public const ushort Torque          = 203;      // Motor torque             [nNm]
-            public const ushort Time            = 420;      // Time                     [2000 counts/second]
-            public const ushort Pressure        = 170;      // AnalogIn 1 (Pressure)    [Vdc]
-            public const ushort LinearPosition  = 172;      // AnalogIn 2 (Linear pos.) [Vdc]
-			public const ushort OutputControl3  = 152;      // Mode of digital output 3
-			public const ushort Output3         = 162;      // Value of digital output 3
-            public const ushort Acceleration    = 353;      // Acceleration value       [positions/second^2 / 256]
-            public const ushort Deacceleration  = 354;      // Deacceleration value     [positions/second^2 / 256]
-            public const ushort Mode            = 400;      // Mode of motor drive
-			public const ushort MotorTorqueMax  = 204;      // Torque limit value       [nNm]
-			public const ushort Status          = 410;      // Current motor drive status (info in different bits)
- 
+            public const ushort TargetInput         = 450;      // Regulator target
+            public const ushort Position            = 200;      // Motor position           [ticks]
+            public const ushort Speed               = 202;      // Motor speed              [positions/sec/16]
+            public const ushort Torque              = 203;      // Motor torque             [nNm]
+            public const ushort Time                = 420;      // Time                     [2000 counts/second]
+            public const ushort Pressure            = 170;      // AnalogIn 1 (Pressure)    [Vdc]
+            public const ushort LinearPosition      = 172;      // AnalogIn 2 (Linear pos.) [Vdc]
+			public const ushort OutputControl3      = 152;      // Mode of digital output 3
+			public const ushort Output3             = 162;      // Value of digital output 3
+            public const ushort Acceleration        = 353;      // Acceleration value       [positions/second^2 / 256]
+            public const ushort Deacceleration      = 354;      // Deacceleration value     [positions/second^2 / 256]
+            public const ushort Mode                = 400;      // Mode of motor drive
+			public const ushort MotorTorqueMax      = 204;      // Torque limit value       [nNm]
+			public const ushort Status              = 410;      // Current motor drive status (info in different bits)
+            public const ushort LogRegister1        = 905;      // Register numbers to log channel 1
+            public const ushort LogRegister2        = 906;      // Register numbers to log channel 2
+            public const ushort LogRegister3        = 907;      // Register numbers to log channel 3
+            public const ushort LogRegister4        = 908;      // Register numbers to log channel 4
+            public const ushort LogRegisterValue1   = 1000;     // Logvalue channel 1 start register
+            public const ushort LogRegisterValue2   = 2000;     // Logvalue channel 2 start register
+            public const ushort LogRegisterValue3   = 3000;     // Logvalue channel 3 start register
+            public const ushort LogRegisterValue4   = 4000;     // Logvalue channel 4 start register
+            public const ushort LogState            = 900;      // Log Mode register
+            public const ushort LogPeriod           = 902;      // Number of skipped regulator cycles between samples
+
             // DEFINE REGISTERS related to events. (see p.19 in manual for information)
             public const ushort EventControl    = 680;      // Control Register for events  (see p.11 in manual)
             public const ushort EventTrgReg     = 700;      // Event Target Register number (see p.12 in manual)
@@ -207,14 +217,39 @@ namespace Model
             // Stopwatch is used to measure the time, creating an instance
             Stopwatch stopWatch = new Stopwatch();
 
+            //Create time factor for logging from maximum time rounded up
+            Double MaxTime = times[sequenceLength];
+            int LogFactor=0; 
+            for (int k = 0; LogFactor > MaxTime; k++)
+            {
+                LogFactor = (int) (k * 0.25);
+            }
+
+            //Subtract 1 to enable the factor to e directly fed to the logging register.
+            LogFactor = LogFactor - 1;
+
+            //Create Time vector
+            for (int i =0 ; i == 500; i++)
+            {
+
+            }
+
+
+
             // Define lists to save recorded motor values in
-            Int32 [] MotorRecordedTimes             = new int[sequenceLength];
-            Int32 [] MotorRecordedPositions         = new Int32 [sequenceLength];
-            Int32 [] MotorRecordedVelocities        = new Int32 [sequenceLength];
-            Int32 [] MotorRecordedTorques           = new Int32 [sequenceLength];
-            Int32 [] MotorRecordedPressures         = new Int32 [sequenceLength];
-            Int32 [] MotorRecordedLinearPositions   = new Int32 [sequenceLength];
-            Double [] StopwatchRecordedTimes        = new Double [sequenceLength];
+            //Int32 [] MotorRecordedTimes             = new int[sequenceLength];
+            //Int32 [] MotorRecordedPositions         = new Int32 [sequenceLength];
+            //Int32 [] MotorRecordedVelocities        = new Int32 [sequenceLength];
+            //Int32 [] MotorRecordedTorques           = new Int32 [sequenceLength];
+            //Int32 [] MotorRecordedPressures         = new Int32 [sequenceLength];
+            //Int32 [] MotorRecordedLinearPositions   = new Int32 [sequenceLength];
+            Int32[] MotorRecordedTimes             = new int[500];
+            Int32 [] MotorRecordedPositions         = new Int32 [500];
+            Int32 [] MotorRecordedVelocities        = new Int32 [500];
+            Int32 [] MotorRecordedTorques           = new Int32 [500];
+            Int32 [] MotorRecordedPressures         = new Int32 [500];
+            Int32 [] MotorRecordedLinearPositions   = new Int32 [500];
+            Double[] StopwatchRecordedTimes        = new Double [sequenceLength];
 
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
             ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
@@ -228,8 +263,19 @@ namespace Model
             // Start to measure time
             stopWatch.Start();
 
+            // Define registers to log 
+            ModCom.RunModbus(Register.LogRegister1, (short)(Register.Time+1));
+            ModCom.RunModbus(Register.LogRegister2, Register.Position);
+            ModCom.RunModbus(Register.LogRegister3, Register.LinearPosition);
+            ModCom.RunModbus(Register.LogRegister4, Register.Pressure);
+
+            // Settings for the logging
+            ModCom.RunModbus(Register.LogPeriod, (short) 19);   
+            ModCom.RunModbus(Register.LogState, (short) 2); // Start logging 500 values
+
             // Start to run the actual sequence
             int i = 0;
+
             while(i < sequenceLength)
             {   
                 // If more time have elapsed than time[i]
@@ -243,7 +289,7 @@ namespace Model
                     // Read time
                     //MotorRecordedTimes[i] = ModCom.ReadModbus(Register.Time, 2, false);
                     // Read motor position
-                    MotorRecordedPositions[i] = ModCom.ReadModbus(Register.Position, 2, true);
+                    //MotorRecordedPositions[i] = ModCom.ReadModbus(Register.Position, 2, true);
                     // Read motor velocity
                     //MotorRecordedVelocities[i] = ModCom.ReadModbus(Register.Speed, 1, false);
                     // Read time
@@ -259,10 +305,29 @@ namespace Model
                 
             }
 
+
+
             // Set target to zero
             ModCom.RunModbus(Register.TargetInput, (Int32)0);
             // Turn off the motor
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);
+
+            Console.WriteLine(ModCom.ReadModbus(Register.LogPeriod, 1, false));
+            Console.WriteLine(ModCom.ReadModbus(Register.LogState, 1, false));
+
+            // Save values from the log registers
+            for (ushort j = 0; j < 500; j++)
+            {
+                ushort ch1 = (ushort) (Register.LogRegisterValue1 + j);
+                ushort ch2 = (ushort) (Register.LogRegisterValue2 + j);
+                ushort ch3 = (ushort)(Register.LogRegisterValue3 + j);
+                ushort ch4 = (ushort) (Register.LogRegisterValue4 + j);
+                //StopwatchRecordedTimes[j]       = ModCom.ReadModbus(ch1, 1, false);
+                MotorRecordedPositions[j]       = ModCom.ReadModbus(ch2, 1, false);
+                //MotorRecordedLinearPositions[j] = ModCom.ReadModbus(ch3, 1, false);
+                Console.WriteLine(ModCom.ReadModbus(ch1, 1, false));
+                MotorRecordedPressures[j]       = ModCom.ReadModbus(ch4, 1, false);
+            }
 
             // Stop counting the time
             stopWatch.Stop();
@@ -283,6 +348,7 @@ namespace Model
             RecordedTimes = StopwatchRecordedTimes.ToList<Double>();
             // Linear position in [VDc] to [mm]
             RecordedLinearPositions = MotorVDcToLinPos(MotorRecordedLinearPositions);
+         
         }
 
         // Function to convert from positions to ticks
@@ -369,6 +435,7 @@ namespace Model
             for (int i = 0; i < VDc.Count; i++)
             {
                 linearPos.Add((Double)VDc[i] * Hardware.LinearPosGain + Hardware.LinearPosBias);
+                //Console.WriteLine(linearPos[i]);
             }
             return linearPos;
         }
