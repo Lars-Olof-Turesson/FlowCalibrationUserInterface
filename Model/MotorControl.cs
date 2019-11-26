@@ -39,7 +39,7 @@ namespace Model
             public const Double MotorTorquePerTorque = 1000; // motor Torque [mNm] per Torque [Nm]
             public const Double PressureGain = 1;            // Analog in [VDC] to Pressure [?] gain
             public const Double PressureBias = 0;            // Analog in [VDC] to Pressure [?] bias
-            public const Double LinearPosGain = 1;           // Analog in [VDC] to linear position [mm] gain.
+            public const Double LinearPosGain = 100.0/65420.0;   // Analog in [VDC] to linear position [mm] gain.
             public const Double LinearPosBias = 0;           // Analog in [VDc] to linear position [mm] bias.       
             public const Int16  MaxTorque = 200;             // Maximum allowed torque [mNm]
         }
@@ -54,7 +54,7 @@ namespace Model
             public const ushort Torque          = 203;      // Motor torque             [nNm]
             public const ushort Time            = 420;      // Time                     [2000 counts/second]
             public const ushort Pressure        = 170;      // AnalogIn 1 (Pressure)    [Vdc]
-            public const ushort LinearPosition  = 171;      // AnalogIn 2 (Linear pos.) [Vdc]
+            public const ushort LinearPosition  = 172;      // AnalogIn 2 (Linear pos.) [Vdc]
 			public const ushort OutputControl3  = 152;      // Mode of digital output 3
 			public const ushort Output3         = 162;      // Value of digital output 3
             public const ushort Acceleration    = 353;      // Acceleration value       [positions/second^2 / 256]
@@ -213,7 +213,7 @@ namespace Model
             Int32 [] MotorRecordedVelocities        = new Int32 [sequenceLength];
             Int32 [] MotorRecordedTorques           = new Int32 [sequenceLength];
             Int32 [] MotorRecordedPressures         = new Int32 [sequenceLength];
-            Int32 [] MotorRecordedLinearPositions   = new Int32[sequenceLength];
+            Int32 [] MotorRecordedLinearPositions   = new Int32 [sequenceLength];
             Double [] StopwatchRecordedTimes        = new Double [sequenceLength];
 
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
@@ -253,7 +253,7 @@ namespace Model
                     // Read pressure
                     //MotorRecordedPressures[i] = ModCom.ReadModbus(Register.Pressure, 1, false);
                     // Read linear position sensor
-                    MotorRecordedLinearPositions[i] = ModCom.ReadModbus(Register.LinearPosition, 1, false); 
+                    //MotorRecordedLinearPositions[i] = ModCom.ReadModbus(Register.LinearPosition, 1, false); 
                     i++;
                 }
                 
@@ -362,7 +362,7 @@ namespace Model
             return pressure;
         }
 
-        // Function to convert from Analogin 2 [VDc] to Linear position [mm]
+        // Function to convert from Analogin 3 [VDc] to Linear position [mm]
         public List<Double> MotorVDcToLinPos(IList<int> VDc)
         {
             List<Double> linearPos = new List<Double>();
@@ -372,6 +372,29 @@ namespace Model
             }
             return linearPos;
         }
+
+        // Function for initial test of linear sensor.
+        public void testLinearSensor()
+        {
+            // Write to the console
+            Console.WriteLine("Test of Linear sensor active!");
+            Console.WriteLine("Press enter to exit");
+            // Read current position from sensor
+            //int Position = ModCom.ReadModbus(Register.LinearPosition, 1, false);
+            //Console.WriteLine(Position);
+            // As long as "Enter" is not pressed, continue 
+
+            //while (Console.ReadKey().Key != ConsoleKey.Enter)
+            while (true)
+            {
+                int Position = ModCom.ReadModbus(Register.LinearPosition, 1, false);
+                double PositionMM = Position * Hardware.LinearPosGain;
+                Console.WriteLine("Position: ");
+                Console.WriteLine(PositionMM.ToString());
+            }
+            Console.WriteLine("Exiting manual control");
+        }
+
 
         // Function to allow the user to manually control the motor, i.e the syring, from the console.
         public void ManualControl()

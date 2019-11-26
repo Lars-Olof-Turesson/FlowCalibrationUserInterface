@@ -187,6 +187,7 @@
                         <oxy:StairStepSeries ItemsSource="{Binding ControlFlowPoints}" Title="Flowprofile (ml/s)"/>
                         <oxy:StairStepSeries ItemsSource="{Binding LogFlowPoints}" Title="Recorded Flow (ml/s)"/>
                         <oxy:LineSeries ItemsSource="{Binding LogVolumePoints}" Title="Recorded Volume (ml)"/>
+                        <oxy:LineSeries ItemsSource="{Binding LogLinearPoints}" Title="Recorded Linear Position (mm)"/>
                     </oxy:Plot.Series>
                 </oxy:Plot>
             </Grid>

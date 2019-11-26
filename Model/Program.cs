@@ -102,7 +102,7 @@ namespace Model
             // Set the max torque to 100 nNm
             modCom.RunModbus(Register.MotorTorqueMax, (Int16)100);
 
-            // Vriable for dummie read
+            // Variable for dummie read
             int dummieRead;
 
             // Lists for recorded values
@@ -140,18 +140,24 @@ namespace Model
             }
 
             // Write the recorded read and write times to the console 
-            Console.WriteLine("Read: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesRead.Max(), RecordedTimesRead.Min(), RecordedTimesRead.Average());
-            Console.WriteLine("Write: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesWrite.Max(), RecordedTimesWrite.Min(), RecordedTimesWrite.Average());
+            //Console.WriteLine("Read: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesRead.Max(), RecordedTimesRead.Min(), RecordedTimesRead.Average());
+            //Console.WriteLine("Write: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesWrite.Max(), RecordedTimesWrite.Min(), RecordedTimesWrite.Average());
 
             // Define a test sequence
-            List<Int32> ticks = new List<Int32>() { 0, 100, 1000, 2000, 3000, 2000, 1000, 100, 0 };
+            //List<Int32> ticks = new List<Int32>() { 0, 100, 1000, 2000, 3000, 2000, 1000, 100, 0 };
             //List<Int32> ticks = new List<Int32>() {0,2000,4000,8000,4000,500,-2000,-2000,0};
-            List<double> times = new List<double>() { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+            //List<double> times = new List<double>() { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 
             // Run the test sequence
-            motCon.RunTickSequence(ticks, times, Mode.PositionRamp);
+            //motCon.RunTickSequence(ticks, times, Mode.PositionRamp);
             //motCon.ManualControl();
             //Console.ReadLine();
+
+            double currentTime = stopWatch.Elapsed.TotalSeconds;
+            double lastTime = stopWatch.Elapsed.TotalSeconds;
+
+            motCon.testLinearSensor();
+
             modCom.EndModbus();
 
             Console.ReadLine();
