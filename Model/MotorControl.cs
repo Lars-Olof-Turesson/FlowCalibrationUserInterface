@@ -273,9 +273,10 @@ namespace Model
             for (int t = 0; t < 500; t++)
             {
                 LogTimeVector[t] = t * LogFactor / Hardware.TimePerSecond; //2000 is motor time frequency and Logfactor is how many time ticks are skipped between each sample.
-                Console.WriteLine(LogTimeVector[t].ToString());
+                LoggedTime.Add(LogTimeVector[t]);
+                Console.WriteLine(LoggedTime[t].ToString());
             }
-
+            
 
             // TODO!!!!
             // Here we should add a function to drive the motor to its home position based on linead
@@ -312,7 +313,7 @@ namespace Model
                 {
                     // Write a new target value to the motor
                     ModCom.RunModbus(Register.TargetInput,(Int32)ticks[i]);
-
+                    Console.WriteLine(ticks[i]);
                     // Read values that should be logged
 
                     // Read time
@@ -335,6 +336,7 @@ namespace Model
             }
 
 
+            ModCom.RunModbus(Register.LogState, (short)0); // Stop logging
 
             // Set target to zero
             ModCom.RunModbus(Register.TargetInput, (Int32)0);
@@ -343,6 +345,10 @@ namespace Model
 
             Console.WriteLine(ModCom.ReadModbus(Register.LogPeriod, 1, false));
             Console.WriteLine(ModCom.ReadModbus(Register.LogState, 1, false));
+            Console.WriteLine(LogRecordedPositions.Length);
+            Console.WriteLine(LogRecordedTargets.Length);
+            Console.WriteLine(LogRecordedPressures.Length);
+            Console.WriteLine(LogRecordedLinearPositions.Length);
 
             // Save values from the log registers
             for (ushort j = 0; j < 500; j++)
@@ -351,12 +357,18 @@ namespace Model
                 ushort ch2 = (ushort) (Register.LogRegisterValue2 + j);
                 ushort ch3 = (ushort) (Register.LogRegisterValue3 + j);
                 ushort ch4 = (ushort) (Register.LogRegisterValue4 + j);
-                LogRecordedPositions[j]             = ModCom.ReadModbus(ch1, 1, true);
-                LogRecordedTargets[j]               = ModCom.ReadModbus(ch2, 1, true);
+                Console.WriteLine(ch1);
+                LogRecordedPositions[j]             = ModCom.ReadModbus(ch1, 1, false);
+                //Console.WriteLine(ch2);
+                LogRecordedTargets[j]               = ModCom.ReadModbus(ch2, 1, false);
+                //Console.WriteLine(ch3);
                 LogRecordedPressures[j]             = ModCom.ReadModbus(ch3, 1, false);
+                //Console.WriteLine(ch4);
                 LogRecordedLinearPositions[j]       = ModCom.ReadModbus(ch4, 1, false);
+                //Console.WriteLine("Logging");
             }
 
+            Console.WriteLine("Logging done");
             // Stop counting the time
             stopWatch.Stop();
 
