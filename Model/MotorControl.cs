@@ -217,22 +217,6 @@ namespace Model
             // Stopwatch is used to measure the time, creating an instance
             Stopwatch stopWatch = new Stopwatch();
 
-            //Create time factor for logging from maximum time rounded up
-            Double MaxTime = times[sequenceLength];
-            int LogFactor=0; 
-            for (int k = 0; LogFactor > MaxTime; k++)
-            {
-                LogFactor = (int) (k * 0.25);
-            }
-
-            //Subtract 1 to enable the factor to e directly fed to the logging register.
-            LogFactor = LogFactor - 1;
-
-            //Create Time vector
-            for (int i =0 ; i == 500; i++)
-            {
-
-            }
 
 
 
@@ -243,14 +227,32 @@ namespace Model
             //Int32 [] MotorRecordedTorques           = new Int32 [sequenceLength];
             //Int32 [] MotorRecordedPressures         = new Int32 [sequenceLength];
             //Int32 [] MotorRecordedLinearPositions   = new Int32 [sequenceLength];
-            Int32[] MotorRecordedTimes             = new int[500];
             Int32 [] MotorRecordedPositions         = new Int32 [500];
             Int32 [] MotorRecordedVelocities        = new Int32 [500];
             Int32 [] MotorRecordedTorques           = new Int32 [500];
             Int32 [] MotorRecordedPressures         = new Int32 [500];
             Int32 [] MotorRecordedLinearPositions   = new Int32 [500];
+            Int32 [] MotorTimeVector                = new Int32 [500];
             Double[] StopwatchRecordedTimes        = new Double [sequenceLength];
 
+            //Create time factor for logging from maximum time rounded up
+            Double MaxTime = times[sequenceLength];
+            int LogFactor = 0;
+            for (int k = 0; LogFactor > MaxTime; k++)
+            {
+                LogFactor = (int)(k * 500/2000); //500 is the number of samples and 2000 is the motor time freqency.
+            }
+
+            //Subtract 1 to enable the factor to e directly fed to the logging register.
+            int RegLogFactor = LogFactor - 1;
+
+            //Create Time vector
+            for (int t = 0; t == 500; t++)
+            {
+                MotorTimeVector[t] = t * LogFactor / 2000; //2000 is motor time frequency and Logfactor is how many time ticks are skipped between each sample.
+            }
+
+         
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
             ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
             ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
