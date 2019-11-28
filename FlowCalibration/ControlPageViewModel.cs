@@ -33,7 +33,13 @@ namespace FlowCalibration
         public ObservableCollection<DataPoint> LogFlowPoints { get; private set; }
 
         public ObservableCollection<DataPoint> LogVolumePoints { get; private set; }
+
+
         public ObservableCollection<DataPoint> LogLinearPoints { get; private set; }
+        public ObservableCollection<DataPoint> LogTargetPoints { get; private set; }
+        public ObservableCollection<DataPoint> LogPositionPoints { get; private set; }
+        public ObservableCollection<DataPoint> LogPressurePoints { get; private set; }
+
 
         public ObservableCollection<DataPoint> ControlFlowPoints { get; private set; }
         public ObservableCollection<PointTracker> TrackedFlowPoints { get; private set; }
@@ -149,7 +155,13 @@ namespace FlowCalibration
 
             LogFlowPoints = new ObservableCollection<DataPoint>();
             LogVolumePoints = new ObservableCollection<DataPoint>();
+            //Recorded Collections
             LogLinearPoints = new ObservableCollection<DataPoint>();
+            LogTargetPoints = new ObservableCollection<DataPoint>();
+            LogPositionPoints = new ObservableCollection<DataPoint>();
+            LogPressurePoints = new ObservableCollection<DataPoint>(); 
+
+
             Amplitude = 20;
             Frequency = 3;
             SamplingInterval = 0.04;
@@ -250,11 +262,22 @@ namespace FlowCalibration
             List<Double> recordedFlows = ProfileConverter.PositionToFlow(motorControl.RecordedPositions, motorControl.RecordedTimes);
             List<Double> recordedVolumes = ProfileConverter.PositionToVolume(motorControl.RecordedPositions);
             List<Double> recordedTimes = motorControl.RecordedTimes;
-            List<Double> recordedLinearPositions = motorControl.RecordedLinearPositions;
+
+            List<Double> logTime = motorControl.LoggedTime;
+            List<Double> logRecordedLinearPositions = motorControl.LoggedLinearPositions;
+            List<Double> logRecordedPressure = motorControl.LoggedPressures;
+            List<Double> logRecordedPosition = motorControl.LoggedPositions;
+            List<Double> logRecordedTarget = motorControl.LoggedTargets;
+
 
             UpdateObservableCollectionFromLists(LogFlowPoints, recordedTimes, recordedFlows);
             UpdateObservableCollectionFromLists(LogVolumePoints, recordedTimes, recordedVolumes);
-            UpdateObservableCollectionFromLists(LogLinearPoints, recordedTimes, recordedLinearPositions);
+            
+            UpdateObservableCollectionFromLists(LogLinearPoints, logTime, logRecordedLinearPositions);
+            UpdateObservableCollectionFromLists(LogPressurePoints, logTime, logRecordedPressure);
+            UpdateObservableCollectionFromLists(LogPositionPoints, logTime, logRecordedPosition);
+            UpdateObservableCollectionFromLists(LogTargetPoints, logTime, logRecordedTarget);
+
 
             RecordedProfile = CurrentProfileName;
             RecordedDateTime = DateTime.Now.ToString();
