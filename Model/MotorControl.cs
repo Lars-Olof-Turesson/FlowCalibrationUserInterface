@@ -42,16 +42,17 @@ namespace Model
         struct Hardware
         {
             //DEFINE HARDWARE PARAMETERS
-            public const Double Pitch = 32;                  // Circumference of gearwheel [mm]
-            public const Double TicksPerRev = 4096;          // ticks per revolution (4096 positions on one revolution)
-            public const Double VelocityResolution = 16;     // velocity resolution (position resolution / constant)
-            public const Double TimePerSecond = 2000;        // time register (+2000 each second)
-            public const Double MotorTorquePerTorque = 1000; // motor Torque [mNm] per Torque [Nm]
-            public const Double PressureGain = 1;            // Analog in [VDC] to Pressure [?] gain
-            public const Double PressureBias = 0;            // Analog in [VDC] to Pressure [?] bias
-            public const Double LinearPosGain = 100.0/65420.0;   // Analog in [VDC] to linear position [mm] gain.
-            public const Double LinearPosBias = 0;           // Analog in [VDc] to linear position [mm] bias.       
-            public const Int16  MaxTorque = 200;             // Maximum allowed torque [mNm]
+            public const Double Pitch                   = 32;               // Circumference of gearwheel [mm]
+            public const Double TicksPerRev             = 4096;             // ticks per revolution (4096 positions on one revolution)
+            public const Double VelocityResolution      = 16;               // velocity resolution (position resolution / constant)
+            public const Double TimePerSecond           = 2000;             // time register (+2000 each second)
+            public const Double MotorTorquePerTorque    = 1000;             // motor Torque [mNm] per Torque [Nm]
+            public const Double PressureGain            = 1;                // Analog in [VDC] to Pressure [?] gain
+            public const Double PressureBias            = 0;                // Analog in [VDC] to Pressure [?] bias
+            public const Double LinearPosGain           = 100.0/65420.0;    // Analog in [VDC] to linear position [mm] gain.
+            public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
+            public const Int16  MaxTorque               = 200;              // Maximum allowed torque [mNm]
+            public const Int16  MotorOffset             = 15000;            // Used to set the motorhomeposition
         }
 
         // Defines a struct for all registers in the motor
@@ -286,6 +287,14 @@ namespace Model
             ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
             ModCom.RunModbus(Register.TargetInput,(Int32)0);    // Set the motor to be continously controlled via communication bus
 
+            // Perform homing
+            ModCom.RunModbus(480, (Int16)(0x110A));
+            ModCom.RunModbus(490, Hardware.MotorOffset);
+            ModCom.RunModbus(491, 10);
+            ModCom.RunModbus(494, Mode.MotorOff);
+
+
+            Console.WriteLine(ModCom.ReadModbus(Register.Position, 2, true));
             // Set the mode of the motor to the given mode
             ModCom.RunModbus(Register.Mode, mode);
             // Set time = 0
@@ -305,15 +314,18 @@ namespace Model
 
             // Start to run the actual sequence
             int i = 0;
-
-            while(i < sequenceLength)
+           
+            while (i < sequenceLength)
             {   
                 // If more time have elapsed than time[i]
                 if (times[i] <= stopWatch.Elapsed.TotalSeconds)
                 {
                     // Write a new target value to the motor
-                    ModCom.RunModbus(Register.TargetInput,(Int32)ticks[i]);
-                    Console.WriteLine(ticks[i]);
+                    //ModCom.RunModbus(Register.TargetInput,(Int32)(ticks[i]));
+                    //Console.WriteLine("Target");
+                    //Console.WriteLine((Int32)(ticks[i]+Hardware.MotorOffset));
+                    //Console.WriteLine("Position");
+                    //Console.WriteLine(ModCom.ReadModbus(Register.Position, 2, true));
                     // Read values that should be logged
 
                     // Read time
@@ -358,9 +370,9 @@ namespace Model
                 ushort ch3 = (ushort) (Register.LogRegisterValue3 + j);
                 ushort ch4 = (ushort) (Register.LogRegisterValue4 + j);
                 Console.WriteLine(ch1);
-                LogRecordedPositions[j]             = ModCom.ReadModbus(ch1, 1, false);
+                LogRecordedPositions[j] = ModCom.ReadModbus(ch1, 1, false);// - Hardware.MotorOffset;
                 //Console.WriteLine(ch2);
-                LogRecordedTargets[j]               = ModCom.ReadModbus(ch2, 1, false);
+                LogRecordedTargets[j] = ModCom.ReadModbus(ch2, 1, false);// - Hardware.MotorOffset;
                 //Console.WriteLine(ch3);
                 LogRecordedPressures[j]             = ModCom.ReadModbus(ch3, 1, false);
                 //Console.WriteLine(ch4);
