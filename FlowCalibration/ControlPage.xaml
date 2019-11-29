@@ -189,6 +189,7 @@
                         <oxy:LineSeries ItemsSource="{Binding LogVolumePoints}" Title="Recorded Volume (ml)"/>
                         <oxy:LineSeries ItemsSource="{Binding LogLinearPoints}" Title="Recorded Linear Position (mm)"/>
                         <oxy:LineSeries ItemsSource="{Binding LogTargetPoints}" Title="Target Position (mm)"/>
+                        <oxy:LineSeries ItemsSource="{Binding LogPositionPoints}" Title="Position(mm)"/>
                         <oxy:LineSeries ItemsSource="{Binding LogPressurePoints}" Title="Recorded Differencial Pressure(V DC)"/>
                     </oxy:Plot.Series>
                 </oxy:Plot>
