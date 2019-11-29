@@ -246,11 +246,12 @@ namespace FlowCalibration
             }
 
             values = ProfileConverter.FlowToVelocity(values);
-
+            //values = ProfileConverter.FlowToPosition(times, values);
             // Run sequence on motor
             try
             {
                 motorControl.RunWithVelocity(values, times);
+                //motorControl.RunWithPosition(values, times);
             }
             catch(Exception) // Not the best practice to catch all possible exceptions, but it works for now.
             {

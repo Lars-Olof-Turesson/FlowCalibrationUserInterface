@@ -283,18 +283,25 @@ namespace Model
             // Here we should add a function to drive the motor to its home position based on linead
 
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
-            ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
+          //  ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
             ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
+            ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 15000
             ModCom.RunModbus(Register.TargetInput,(Int32)0);    // Set the motor to be continously controlled via communication bus
 
             // Perform homing
-            ModCom.RunModbus(480, (Int16)(0x110A));
-            ModCom.RunModbus(490, Hardware.MotorOffset);
-            ModCom.RunModbus(491, 10);
-            ModCom.RunModbus(494, Mode.MotorOff);
+            //ModCom.RunModbus(480, (Int16)(0x110A));
+            //ModCom.RunModbus(490, Hardware.MotorOffset);
+            //ModCom.RunModbus(491, 10);
+            //ModCom.RunModbus(494, Mode.MotorOff);
 
 
+            Console.WriteLine("Position register 200");
+            Console.WriteLine(ModCom.ReadModbus(201, 1, false));
+            //ModCom.RunModbus(Register.Position+1, 4000);      // Set the position to 0
+            Console.WriteLine("Position register 201");
             Console.WriteLine(ModCom.ReadModbus(Register.Position, 2, true));
+            Console.WriteLine(ModCom.ReadModbus(Register.TargetInput, 2, true));
+
             // Set the mode of the motor to the given mode
             ModCom.RunModbus(Register.Mode, mode);
             // Set time = 0
@@ -303,7 +310,7 @@ namespace Model
             stopWatch.Start();
 
             // Define registers to log 
-            ModCom.RunModbus(Register.LogRegister1, Register.Position);
+            ModCom.RunModbus(Register.LogRegister1, 201);
             ModCom.RunModbus(Register.LogRegister2, Register.TargetPresent);
             ModCom.RunModbus(Register.LogRegister3, Register.Pressure);
             ModCom.RunModbus(Register.LogRegister4, Register.LinearPosition);
@@ -314,14 +321,21 @@ namespace Model
 
             // Start to run the actual sequence
             int i = 0;
-           
             while (i < sequenceLength)
             {   
                 // If more time have elapsed than time[i]
                 if (times[i] <= stopWatch.Elapsed.TotalSeconds)
                 {
                     // Write a new target value to the motor
+                    int target = ticks[i];
+                    Console.WriteLine("Ticks");
+                    Console.WriteLine(target);
                     //ModCom.RunModbus(Register.TargetInput,(Int32)(ticks[i]));
+                    ModCom.RunModbus(Register.TargetInput, target);
+                    Console.WriteLine("Targetinput");
+                    Console.WriteLine(ModCom.ReadModbus(Register.TargetInput, 2, true));
+                    Console.WriteLine("Position");
+                    Console.WriteLine(ModCom.ReadModbus(Register.Position, 2, true));
                     //Console.WriteLine("Target");
                     //Console.WriteLine((Int32)(ticks[i]+Hardware.MotorOffset));
                     //Console.WriteLine("Position");
@@ -351,7 +365,8 @@ namespace Model
             ModCom.RunModbus(Register.LogState, (short)0); // Stop logging
 
             // Set target to zero
-            ModCom.RunModbus(Register.TargetInput, (Int32)0);
+            //ModCom.RunModbus(Register.TargetInput, (Int32)0);
+            ModCom.RunModbus(Register.TargetInput, 15000);
             // Turn off the motor
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);
 
@@ -419,7 +434,7 @@ namespace Model
             List<int> ticks = new List<int>();
             for (int i = 0; i < positions.Count; i++)
             {
-                ticks.Add(-(int)Math.Round(positions[i] * 10 * Hardware.TicksPerRev / Hardware.Pitch));
+                ticks.Add(-(int)Math.Round(positions[i] * Hardware.TicksPerRev / Hardware.Pitch));
             }
             return ticks;
         }
@@ -441,7 +456,7 @@ namespace Model
             List<Double> position = new List<Double>();
             for (int i = 0; i < ticks.Count; i++)
             {
-                position.Add(-(Double)ticks[i] * Hardware.Pitch / Hardware.TicksPerRev /10);
+                position.Add(-(Double)ticks[i] * Hardware.Pitch / Hardware.TicksPerRev);
             }
             return position;
         }
@@ -511,6 +526,12 @@ namespace Model
                 VDc.Add((Double)analogIn[i] * (5 / 65535));
             }
             return VDc;
+        }
+
+        // Function to initialize the motor and set the system in its home position
+        public void goToHome()
+        {
+
         }
 
         // Function for initial test of linear sensor.

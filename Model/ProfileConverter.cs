@@ -92,7 +92,7 @@ namespace Model
             {
                 throw new Exception("Input lists not of equal length");
             }
-
+            
             List<double> primitive = new List<double>();
             for (int i = 0; i <= x.Count() - 1 - 1; i++)
             {

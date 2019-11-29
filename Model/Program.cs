@@ -67,7 +67,7 @@ namespace Model
             // Set the mode to position ramp (closed control of position with ramp)
             modCom.RunModbus(Register.Mode, (Int16)21);
 
-            //modCom.RunModbus(Register.TargetInput,0);
+            modCom.RunModbus(Register.TargetInput,4096);
             //modCom.RunModbus(Register.Mode,(Int16)33);
             //modCom.RunModbus(Register.TargetInput,100);
             //Thread.Sleep(2000);
@@ -156,7 +156,7 @@ namespace Model
             double currentTime = stopWatch.Elapsed.TotalSeconds;
             double lastTime = stopWatch.Elapsed.TotalSeconds;
 
-            motCon.testLinearSensor();
+            //motCon.testLinearSensor();
 
             modCom.EndModbus();
 
