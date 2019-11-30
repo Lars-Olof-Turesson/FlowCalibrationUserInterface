@@ -270,7 +270,7 @@ namespace Model
             // Start to measure time at computer
             stopWatch.Start();
             // Setup and start the logging
-            setupLogging(RegLogFactor, 1);
+            setupLogging(RegLogFactor, 0);
 
             // Start to run the actual sequence and send regulator targets to the motor
             int i = 0;
@@ -297,7 +297,7 @@ namespace Model
             stopWatch.Stop();
             // Read and save logged values from motor
             saveLoggedValues(LogRecordedPositions, LogRecordedTargets,
-                             LogRecordedPressures, LogRecordedLinearPositions);
+                             LogRecordedPressures, LogRecordedLinearPositions, 0);
 
             // Convert Ticks to positions
             LoggedPositions = TickToPosition(LogRecordedPositions);
@@ -308,7 +308,7 @@ namespace Model
             // Convert uns16 to linear position
             LoggedLinearPositions = uns16ToLinPos(LogRecordedLinearPositions);
 
-            //-------------------OLD VERSIO-----------------------------------------//
+            //-------------------OLD VERSION----------------------------------------//
             // Ticks to positions                                                   //
             RecordedPositions = TickToPosition(MotorRecordedPositions);             //
             // Ticks per second to velocities                                       //
@@ -457,12 +457,16 @@ namespace Model
                 // Define registers to log 
                 ModCom.RunModbus(Register.LogRegister1, (ushort)(Register.Position + 1));     // Position
                 ModCom.RunModbus(Register.LogRegister2, (ushort)(Register.TargetInput + 1));  // Regulator target
-                ModCom.RunModbus(Register.LogRegister3, Register.Pressure);                 // Pressure
-                ModCom.RunModbus(Register.LogRegister4, Register.LinearPosition);           // Linear position
+                ModCom.RunModbus(Register.LogRegister3, Register.Pressure);                   // Pressure
+                ModCom.RunModbus(Register.LogRegister4, Register.LinearPosition);             // Linear position
             }
             else
             {
-
+                // Define registers to log 
+                ModCom.RunModbus(Register.LogRegister1, Register.Speed);                      // Speed
+                ModCom.RunModbus(Register.LogRegister2, (ushort)(Register.TargetInput + 1));  // Regulator target
+                ModCom.RunModbus(Register.LogRegister3, Register.Pressure);                   // Pressure
+                ModCom.RunModbus(Register.LogRegister4, Register.LinearPosition);             // Linear position
             }
             // Settings for the logging
             ModCom.RunModbus(Register.LogPeriod, (short)RegLogFactor);
@@ -471,9 +475,12 @@ namespace Model
 
         }
 
-        // FUnction for reading and saving the logged values
+        // Function for reading and saving the logged values
+        // Position = 1     Logging for position control
+        // Position = 0     Logging for velocity control
         public void saveLoggedValues(int[] LogRecordedPositions, int[] LogRecordedTargets,
-                                     int[] LogRecordedPressures, int[] LogRecordedLinearPositions)
+                                     int[] LogRecordedPressures, int[] LogRecordedLinearPositions,
+                                     int Position)
         {
             // Save values from the log registers
             for (ushort j = 0; j< 500; j++)
@@ -492,9 +499,12 @@ namespace Model
             //Loop for converting LSB part of int32 to int16
             for (int o = 0; o < 500; o++)
             {
-                byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedPositions[o]);
-                short y = BitConverter.ToInt16(bytes, 0);
-                LogRecordedPositions[o] = (int)y;
+                if (Position == 1)
+                {
+                    byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedPositions[o]);
+                    short y = BitConverter.ToInt16(bytes, 0);
+                    LogRecordedPositions[o] = (int)y;
+                }
                 byte[] bytes2 = BitConverter.GetBytes((ushort)LogRecordedTargets[o]);
                 short x = BitConverter.ToInt16(bytes2, 0);
                 LogRecordedTargets[o] = (int)x;
