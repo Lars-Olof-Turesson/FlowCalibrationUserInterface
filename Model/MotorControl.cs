@@ -278,7 +278,7 @@ namespace Model
             // Start to measure time at computer
             stopWatch.Start();
             // Setup and start the logging
-            setupLogging(RegLogFactor, 1);
+            setupLogging(RegLogFactor, 0);
 
             // Start to run the actual sequence and send regulator targets to the motor
             int i = 0;

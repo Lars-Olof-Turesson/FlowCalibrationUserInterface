@@ -34,6 +34,12 @@ namespace FlowCalibration
 
         public ObservableCollection<DataPoint> LogVolumePoints { get; private set; }
 
+        public List<Double> logTime;
+        public List<Double> logRecordedLinearPositions;
+        public List<Double> logRecordedPressure;
+        public List<Double> logRecordedPosition;
+        public List<Double> logRecordedTarget;
+
 
         public ObservableCollection<DataPoint> LogLinearPoints { get; private set; }
         public ObservableCollection<DataPoint> LogTargetPoints { get; private set; }
@@ -238,13 +244,15 @@ namespace FlowCalibration
 
             List<Double> times = new List<Double>();
             List<Double> values = new List<Double>();
+            List<Double> integrals = new List<Double>();
+
 
             foreach (DataPoint point in ControlFlowPoints)
             {
                 times.Add(point.X);
                 values.Add(point.Y);
             }
-
+            integrals = ProfileConverter.SimpleIntegrate(values, SamplingInterval);
             values = ProfileConverter.FlowToVelocity(values);
             //values = ProfileConverter.FlowToPosition(times, values);
             // Run sequence on motor
@@ -275,6 +283,7 @@ namespace FlowCalibration
             UpdateObservableCollectionFromLists(LogFlowPoints,   logTime, ProfileConverter.PositionToFlow(logRecordedPosition, logTime));
             UpdateObservableCollectionFromLists(LogVolumePoints, recordedTimes, recordedVolumes);
             
+
             UpdateObservableCollectionFromLists(LogLinearPoints,    logTime, logRecordedLinearPositions);
             UpdateObservableCollectionFromLists(LogPressurePoints,  logTime, logRecordedPressure);
             UpdateObservableCollectionFromLists(LogPositionPoints,  logTime, logRecordedPosition);

@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Globalization;
+using System.Collections.Generic;
 using Microsoft.Win32;
 
 namespace FlowCalibration
@@ -124,6 +125,24 @@ namespace FlowCalibration
             if ( saveDialog.ShowDialog() == true )
             {
                 ViewModel.SaveProfile(saveDialog.FileName, ViewModel.LogFlowPoints);
+            }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveDialog = new SaveFileDialog();
+            saveDialog.Filter = "CSV file (*.csv)|*.csv";
+            saveDialog.DefaultExt = "csv";
+            saveDialog.AddExtension = true;
+            //List<Double> list1 = new List<Double>() { 1,1,1 };
+            //List<Double> list2 = new List<Double>() { 2,2,2 };
+            //List<Double> list3 = new List<Double>() { 3,3,3 };
+            //List<Double> list4 = new List<Double>() { 4,4,4 };
+            //List<Double> listT = new List<Double>() { 0, 5, 10 };
+            if (saveDialog.ShowDialog() == true)
+            {
+                Model.DataExporter.SaveTimeAnd4ValuesToCsv(ViewModel.logTime, ViewModel.logRecordedLinearPositions, ViewModel.logRecordedPosition, ViewModel.logRecordedPressure, ViewModel.logRecordedTarget, saveDialog.FileName);
+                //Model.DataExporter.SaveTimeAnd4ValuesToCsv(listT, list1, list2, list3, list4, saveDialog.FileName);
             }
         }
     }

@@ -61,7 +61,7 @@
             <Setter Property="BorderBrush" Value="Transparent" />
         </Style>
     </Page.Resources>
-    
+
     <!-- Start of elements placed on the page-->
     <TabControl TabStripPlacement="Top" Background="{StaticResource color1Brush}" Foreground="{StaticResource color5Brush}">
         <TabItem Header="Control" Style="{StaticResource tabItem}">
@@ -76,7 +76,7 @@
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="3*"/>
                     </Grid.RowDefinitions>
-                    
+
                     <StackPanel>
                         <TextBlock Text="Data Control 2019" Style="{StaticResource largeText}" HorizontalAlignment="Center"/>
                         <ComboBox Name="Profiles_ComboBox" SelectedValuePath="Content" Margin="20" ItemsSource="{Binding FlowProfileNames}" SelectionChanged="Profiles_ComboBox_SelectionChanged"/>
@@ -100,7 +100,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
-                
+
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -115,7 +115,7 @@
                         <Button Name="LoadProfile_Button" Content="Load Profile"  Click="LoadProfile_Button_Click" Style="{StaticResource smallButton}" Margin="0,20,10,0"/>
                         <Button Name="SaveProfile_Button" Content="Save Profile" Click="SaveProfile_Button_Click" Style="{StaticResource smallButton}" Margin="0,20,10,0"/>
                     </StackPanel>
-                    
+
                     <oxy:Plot Grid.Row="1" Grid.ColumnSpan="2">
                         <oxy:Plot.Axes>
                             <oxy:LinearAxis Position="Bottom" Title="Time (s)"/>
@@ -123,7 +123,7 @@
                         </oxy:Plot.Axes>
                         <oxy:Plot.Series>
                             <oxy:StairStepSeries ItemsSource="{Binding ControlFlowPoints}" Title="Flow (ml/s)"/>
-                        </oxy:Plot.Series> 
+                        </oxy:Plot.Series>
                     </oxy:Plot>
 
 
@@ -156,7 +156,7 @@
             </Grid>
         </TabItem>
         <TabItem Header="Logger" Style="{StaticResource tabItem}">
-            <Grid>
+            <Grid Height="398">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="3*"/>
@@ -191,6 +191,7 @@
                         <oxy:LineSeries ItemsSource="{Binding LogPressurePoints}" Title="Logged Differencial Pressure(V DC)"/>
                     </oxy:Plot.Series>
                 </oxy:Plot>
+                <Button Content="Save all channels" HorizontalAlignment="Left" Margin="10,368,0,0" VerticalAlignment="Top" Width="122" Click="Button_Click" Height="20"/>
             </Grid>
         </TabItem>
     </TabControl>

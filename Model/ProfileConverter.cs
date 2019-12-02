@@ -102,5 +102,33 @@ namespace Model
             }
             return primitive;
         }
+
+        // Function to perform integration on given profile/graph.
+        // The first value is lost.
+        // How big is the error on the integration????????????????
+        public List<double> SimpleIntegrate(List<double> x, Double samplingTime)
+        {
+
+            List<double> primitive = new List<double>();
+            double step;
+            for (int i = 0; i <= x.Count() - 1; i++)
+            {
+                
+                if (i > 0)
+                {
+                    step = primitive[i-1] + samplingTime * x[i];
+                }
+                else
+                {
+                    step = samplingTime * x[i];
+                }
+                
+                //double areaBackward = y[i + 1] * (x[i + 1] - x[i]); 
+                primitive.Insert(i, step);
+            }
+            return primitive;
+        }
+
+
     }
 }
