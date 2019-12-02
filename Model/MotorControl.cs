@@ -51,8 +51,13 @@ namespace Model
             public const Double PressureBias            = 0;                // Analog in [VDC] to Pressure [?] bias
             public const Double LinearPosGain           = 100.0 / 65420.0;  // Analog in [VDC] to linear position [mm] gain.
             public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
-            public const Int16 MaxTorque                = 200;              // Maximum allowed torque [mNm]
-            public const Int16 MotorOffset              = 15000;            // Used to set the motorhomeposition
+            public const Int16  MaxTorque               = 200;              // Maximum allowed torque [mNm]
+            public const Int16  MotorOffset             = 15000;            // Used to set the motorhomeposition
+            public const Double HomePosition            = 8.0;              // Homeposition of the system [mm]
+            public const Double HomePosTolerance        = 0.01;              // Tolerance for homepositon [mm]
+            public const Double MinPosition             = 5.0;              // Minimum possible position from linear sensor [mm]
+            public const Double MaxPosition             = 95.000;           // Maximum possible position from linear sensor [mm]
+
         }
 
         // Defines a struct for all registers in the motor
@@ -423,7 +428,79 @@ namespace Model
         // Function to initialize the motor and set the system in its home position
         public void goToHome()
         {
+            // Get the current linear position
+            double currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
 
+            // Chech if the current linear position is valid, if not throw an error
+            if (currentPosition > Hardware.MaxPosition | currentPosition < Hardware.MinPosition)
+            {
+                throw new Exception("Measurement from linear sensor is out of physical range!");
+            }
+
+            // Boolean operator to keep track if home position found
+            bool done = false;
+
+            // Define value for the updated position for the motor
+            int newPosition = 0;
+
+            // Initialize the motor
+            ModCom.RunModbus(Register.Mode, Mode.PositionRamp); // Set the mode to positonramp
+            ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
+            ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
+            ModCom.RunModbus(Register.TargetInput, (Int32)0);   // Set the target to 0
+
+            // Run the motor until the system is in its homeposition
+            while (!done)
+            {
+                // Read the current position
+                currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
+
+                // Define variable for how much to inrease
+                int increase = 0;
+                // Decide how much to increase with depending on how far away from home
+                if (Math.Abs(currentPosition - Hardware.HomePosition) > 0.5)
+                {
+                    increase = 10;
+                }
+                else
+                {
+                    increase = 1;
+                }
+
+                // If the piston is to far into the syringe, turn the motor counterclockwise (piston is moved 0.mm)
+                if (currentPosition > Hardware.HomePosition + Hardware.HomePosTolerance)
+                {
+                    // Increase the position
+                    newPosition = newPosition + increase;
+                    Console.Write("Current Position: ");
+                    Console.WriteLine(currentPosition);
+                }
+                // If the piston is to far out of the syringe, turn the motor clockwise
+                else if (currentPosition < Hardware.HomePosition - Hardware.HomePosTolerance)
+                {
+                    // Decrease the position
+                    newPosition = newPosition - increase;
+                }
+
+                // Check if we are done
+                if (currentPosition < Hardware.HomePosition + Hardware.HomePosTolerance &
+                    currentPosition > Hardware.HomePosition - Hardware.HomePosTolerance)
+                {
+                    done = true;
+                }
+                Console.Write("Current Position: ");
+                Console.WriteLine(currentPosition);
+
+                // Write the new position to the motor
+                ModCom.RunModbus(Register.TargetInput, newPosition);
+            }
+
+            // Turn off the motor
+            ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
+            // Set the position to 0
+            ModCom.RunModbus(Register.Position, (Int32)0);
+            // Set the target to 0
+            ModCom.RunModbus(Register.TargetInput, (Int32)0);
         }
 
         // Function to create the time vector. Adds the times to LoggedTime and returns the RegLogFactor
