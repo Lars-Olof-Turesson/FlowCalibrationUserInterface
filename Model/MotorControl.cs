@@ -182,9 +182,9 @@ namespace Model
             LoggedPositions         = new List<Double>();
             LoggedTargets           = new List<Double>();
             LoggedPressures         = new List<Double>();
-            LoggedLinearPositions  = new List<Double>();
+            LoggedLinearPositions   = new List<Double>();
             // Create empty list to store the time vector corresponding to logged values
-            LoggedTime = new List<Double>();
+            LoggedTime              = new List<Double>();
 
             // Create event reading the maximum torque status register
             CreateEvent((ushort)0,
@@ -472,8 +472,6 @@ namespace Model
                 {
                     // Increase the position
                     newPosition = newPosition + increase;
-                    Console.Write("Current Position: ");
-                    Console.WriteLine(currentPosition);
                 }
                 // If the piston is to far out of the syringe, turn the motor clockwise
                 else if (currentPosition < Hardware.HomePosition - Hardware.HomePosTolerance)
@@ -508,6 +506,8 @@ namespace Model
         {
             // Get the maximum time from the input tick sequence 
             Double MaxTime = times[sequenceLength - 1];
+            Console.Write("Max Time: ");
+            Console.WriteLine(MaxTime);
             // Calculate the logfactor that will be used as input to the ReqPeriod register.
             int LogFactor = (int)Math.Ceiling(MaxTime * (Hardware.TimePerSecond / 500.0));
             // Subtract 1 to enable the factor to directly fed to the logging register.
@@ -519,11 +519,12 @@ namespace Model
                 // Compute the time value
                 double time = t * LogFactor / Hardware.TimePerSecond;
                 LoggedTime.Add(time);
+                Console.WriteLine(time);
             }
             return RegLogFactor;
         }
 
-        // Function for setting upp the loggin of values from motor
+        // Function for setting upp the logging of values from motor
         // Position = 1     Logging for position control
         // Position = 0     Logging for velocity control
         public void setupLogging(int RegLogFactor, int Position)
@@ -576,12 +577,9 @@ namespace Model
             //Loop for converting LSB part of int32 to int16
             for (int o = 0; o < 500; o++)
             {
-                if (Position == 1)
-                {
-                    byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedPositions[o]);
-                    short y = BitConverter.ToInt16(bytes, 0);
-                    LogRecordedPositions[o] = (int)y;
-                }
+                byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedPositions[o]);
+                short y = BitConverter.ToInt16(bytes, 0);
+                LogRecordedPositions[o] = (int)y;
                 byte[] bytes2 = BitConverter.GetBytes((ushort)LogRecordedTargets[o]);
                 short x = BitConverter.ToInt16(bytes2, 0);
                 LogRecordedTargets[o] = (int)x;

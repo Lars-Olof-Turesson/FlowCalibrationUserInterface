@@ -156,7 +156,10 @@ namespace Model
             double currentTime = stopWatch.Elapsed.TotalSeconds;
             double lastTime = stopWatch.Elapsed.TotalSeconds;
 
-            motCon.goToHome();
+            List<Double> times = new List<Double>() {0, 1.0, 2.0, 3.0, 4.0, 5.0}; ;
+            int test = motCon.createTimeVector(times, times.Count());
+            Console.Write("RegLogFactor: ");
+            Console.Write(test);
 
             //motCon.testLinearSensor();
 
