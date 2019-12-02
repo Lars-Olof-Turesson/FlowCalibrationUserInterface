@@ -259,26 +259,28 @@ namespace FlowCalibration
                 return;
             }
             
-
+            // Old recordings that are not used
             List<Double> recordedFlows = ProfileConverter.PositionToFlow(motorControl.RecordedPositions, motorControl.RecordedTimes);
             List<Double> recordedVolumes = ProfileConverter.PositionToVolume(motorControl.RecordedPositions);
+            
             List<Double> recordedTimes = motorControl.RecordedTimes;
 
-            List<Double> logTime = motorControl.LoggedTime;
+            List<Double> logTime                    = motorControl.LoggedTime;
             List<Double> logRecordedLinearPositions = motorControl.LoggedLinearPositions;
-            List<Double> logRecordedPressure = motorControl.LoggedPressures;
-            List<Double> logRecordedPosition = motorControl.LoggedPositions;
-            List<Double> logRecordedTarget = motorControl.LoggedTargets;
+            List<Double> logRecordedPressure        = motorControl.LoggedPressures;
+            List<Double> logRecordedPosition        = motorControl.LoggedPositions;
+            List<Double> logRecordedTarget          = motorControl.LoggedTargets;
+            //logRecordedTarget = ProfileConverter.VelocityToFlow(logRecordedTarget);
 
-
-            UpdateObservableCollectionFromLists(LogFlowPoints, recordedTimes, recordedFlows);
+            UpdateObservableCollectionFromLists(LogFlowPoints,   logTime, ProfileConverter.PositionToFlow(logRecordedPosition, logTime));
             UpdateObservableCollectionFromLists(LogVolumePoints, recordedTimes, recordedVolumes);
             
-            UpdateObservableCollectionFromLists(LogLinearPoints, logTime, logRecordedLinearPositions);
-            UpdateObservableCollectionFromLists(LogPressurePoints, logTime, logRecordedPressure);
-            UpdateObservableCollectionFromLists(LogPositionPoints, logTime, logRecordedPosition);
-            UpdateObservableCollectionFromLists(LogTargetPoints, logTime, logRecordedTarget);
+            UpdateObservableCollectionFromLists(LogLinearPoints,    logTime, logRecordedLinearPositions);
+            UpdateObservableCollectionFromLists(LogPressurePoints,  logTime, logRecordedPressure);
+            UpdateObservableCollectionFromLists(LogPositionPoints,  logTime, logRecordedPosition);
+            UpdateObservableCollectionFromLists(LogTargetPoints,    logTime, logRecordedTarget);
 
+       
 
             RecordedProfile = CurrentProfileName;
             RecordedDateTime = DateTime.Now.ToString();

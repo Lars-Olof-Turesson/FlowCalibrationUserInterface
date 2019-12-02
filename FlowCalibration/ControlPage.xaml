@@ -185,12 +185,10 @@
                     </oxy:Plot.Axes>
                     <oxy:Plot.Series>
                         <oxy:StairStepSeries ItemsSource="{Binding ControlFlowPoints}" Title="Flowprofile (ml/s)"/>
-                        <oxy:StairStepSeries ItemsSource="{Binding LogFlowPoints}" Title="Recorded Flow (ml/s)"/>
-                        <oxy:LineSeries ItemsSource="{Binding LogVolumePoints}" Title="Recorded Volume (ml)"/>
-                        <oxy:LineSeries ItemsSource="{Binding LogLinearPoints}" Title="Recorded Linear Position (mm)"/>
-                        <oxy:LineSeries ItemsSource="{Binding LogTargetPoints}" Title="Target Position (mm)"/>
-                        <oxy:LineSeries ItemsSource="{Binding LogPositionPoints}" Title="Position(mm)"/>
-                        <oxy:LineSeries ItemsSource="{Binding LogPressurePoints}" Title="Recorded Differencial Pressure(V DC)"/>
+                        <oxy:LineSeries ItemsSource="{Binding LogLinearPoints}" Title="Logged Linear Positions (mm)"/>
+                        <oxy:LineSeries ItemsSource="{Binding LogTargetPoints}" Title="Logged Target Velocities (mm/s)"/>
+                        <oxy:LineSeries ItemsSource="{Binding LogPositionPoints}" Title="Logged Positions (mm)"/>
+                        <oxy:LineSeries ItemsSource="{Binding LogPressurePoints}" Title="Logged Differencial Pressure(V DC)"/>
                     </oxy:Plot.Series>
                 </oxy:Plot>
             </Grid>

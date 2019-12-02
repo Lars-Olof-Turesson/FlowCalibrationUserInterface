@@ -90,6 +90,9 @@ namespace Model
             public const ushort LogRegisterValue4 = 4000;     // Logvalue channel 4 start register
             public const ushort LogState          = 900;      // Log Mode register
             public const ushort LogPeriod         = 902;      // Number of skipped regulator cycles between samples
+            public const ushort SeqTarget         = 510;      // Register for Sequence target
+            public const ushort SeqTime           = 570;      // Register for time for sequence target  
+            public const ushort SeqIndex          = 501;      // Register with current sequence index 
 
             // DEFINE REGISTERS related to events. (see p.19 in manual for information)
             public const ushort EventControl    = 680;      // Control Register for events  (see p.11 in manual)
@@ -275,7 +278,7 @@ namespace Model
             // Start to measure time at computer
             stopWatch.Start();
             // Setup and start the logging
-            setupLogging(RegLogFactor, 0);
+            setupLogging(RegLogFactor, 1);
 
             // Start to run the actual sequence and send regulator targets to the motor
             int i = 0;
@@ -302,7 +305,7 @@ namespace Model
             stopWatch.Stop();
             // Read and save logged values from motor
             saveLoggedValues(LogRecordedPositions, LogRecordedTargets,
-                             LogRecordedPressures, LogRecordedLinearPositions, 0);
+                             LogRecordedPressures, LogRecordedLinearPositions, 1);
 
             // Convert Ticks to positions
             LoggedPositions = TickToPosition(LogRecordedPositions);
@@ -325,6 +328,17 @@ namespace Model
             //----------------------------------------------------------------------//
         }
 
+
+        // Function to convert from MotorSpeed to velocities
+        public List<Double> MotorSpeedToVelocity(IList<int> motorSpeeds)
+        {
+            List<Double> velocities = new List<Double>();
+            for (int i = 0; i < motorSpeeds.Count; i++)
+            {
+                velocities.Add(-(Double) motorSpeeds[i] /256.0 );
+            }
+            return velocities;
+        }
         // Function to convert from positions to ticks
         public List<int> PositionToTick(List<Double> positions)
         {
@@ -444,10 +458,11 @@ namespace Model
             int newPosition = 0;
 
             // Initialize the motor
-            ModCom.RunModbus(Register.Mode, Mode.PositionRamp); // Set the mode to positonramp
+            ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
             ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
             ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
             ModCom.RunModbus(Register.TargetInput, (Int32)0);   // Set the target to 0
+            ModCom.RunModbus(Register.Mode, Mode.PositionRamp); // Set the mode to positonramp
 
             // Run the motor until the system is in its homeposition
             while (!done)
@@ -573,21 +588,55 @@ namespace Model
                 LogRecordedTargets[j]           = ModCom.ReadModbus(ch2, 1, false);
                 LogRecordedPressures[j]         = ModCom.ReadModbus(ch3, 1, false);
                 LogRecordedLinearPositions[j]   = ModCom.ReadModbus(ch4, 1, false);
+                Console.Write("Logged Motorspeeds");
+                Console.WriteLine(LogRecordedPositions[j]);
             }
             //Loop for converting LSB part of int32 to int16
             for (int o = 0; o < 500; o++)
             {
-                byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedPositions[o]);
-                short y = BitConverter.ToInt16(bytes, 0);
-                LogRecordedPositions[o] = (int)y;
+                if (Position == 1)
+                {
+                    byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedPositions[o]);
+                    short y = BitConverter.ToInt16(bytes, 0);
+                    LogRecordedPositions[o] = (int)y;
+                }
                 byte[] bytes2 = BitConverter.GetBytes((ushort)LogRecordedTargets[o]);
                 short x = BitConverter.ToInt16(bytes2, 0);
                 LogRecordedTargets[o] = (int)x;
             }
         }
 
-        // Function for initial test of linear sensor.
-        public void testLinearSensor()
+        // Function for Sequence Control
+        public void sequenceControl(List<Int32> ticks, List<Double> times)
+        {
+
+
+            // Wrtie the first 16 targets
+            // Save values from the log registers
+            for (ushort i = 0; i < 16; i++)
+            {
+                // Variables for increasing the register numbers
+                ushort ch1 = (ushort)(Register.SeqTarget + i);
+                ushort ch2 = (ushort)(Register.SeqTime + i);
+
+                // Write values
+                ModCom.RunModbus(ch1, ticks[i]);
+                ModCom.RunModbus(ch2, (ushort)(times[i + 1] - times[i] * 1000));
+            }
+
+            // Set mode to sequence control
+            ModCom.RunModbus(Register.Mode, 51); // Set the mode to positonramp
+
+            bool done = false;
+            // Start to continously update the sequence registers
+            while(!done)
+            {
+
+            }
+        }
+
+            // Function for initial test of linear sensor.
+            public void testLinearSensor()
         {
             // Write to the console
             Console.WriteLine("Test of Linear sensor active!");
