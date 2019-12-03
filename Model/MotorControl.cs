@@ -53,10 +53,10 @@ namespace Model
             public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
             public const Int16  MaxTorque               = 200;              // Maximum allowed torque [mNm]
             public const Int16  MotorOffset             = 15000;            // Used to set the motorhomeposition
-            public const Double HomePosition            = 8.0;              // Homeposition of the system [mm]
-            public const Double HomePosTolerance        = 0.01;              // Tolerance for homepositon [mm]
-            public const Double MinPosition             = 5.0;              // Minimum possible position from linear sensor [mm]
-            public const Double MaxPosition             = 95.000;           // Maximum possible position from linear sensor [mm]
+            public const Double HomePosition            = 10.0;             // Homeposition of the system [mm]
+            public const Double HomePosTolerance        = 0.01;             // Tolerance for homepositon [mm]
+            public const Double MinPosition             = 1.3;              // Minimum possible position from linear sensor [mm]
+            public const Double MaxPosition             = 91.0;             // Maximum possible position from linear sensor [mm]
 
         }
 
@@ -475,7 +475,7 @@ namespace Model
                 // Decide how much to increase with depending on how far away from home
                 if (Math.Abs(currentPosition - Hardware.HomePosition) > 0.5)
                 {
-                    increase = 10;
+                    increase = 20;
                 }
                 else
                 {

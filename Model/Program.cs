@@ -100,7 +100,7 @@ namespace Model
                                 (Int16)0);                  // No source register
 
             // Set the max torque to 100 nNm
-            modCom.RunModbus(Register.MotorTorqueMax, (Int16)100);
+            modCom.RunModbus(Register.MotorTorqueMax, (Int16)125);
 
             // Variable for dummie read
             int dummieRead;
@@ -140,8 +140,8 @@ namespace Model
             }
 
             // Write the recorded read and write times to the console 
-            Console.WriteLine("Read: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesRead.Max(), RecordedTimesRead.Min(), RecordedTimesRead.Average());
-            Console.WriteLine("Write: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesWrite.Max(), RecordedTimesWrite.Min(), RecordedTimesWrite.Average());
+            //Console.WriteLine("Read: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesRead.Max(), RecordedTimesRead.Min(), RecordedTimesRead.Average());
+            //Console.WriteLine("Write: Max: {0}, Min: {1}, Avr: {2}", RecordedTimesWrite.Max(), RecordedTimesWrite.Min(), RecordedTimesWrite.Average());
 
             // Define a test sequence
             //List<Int32> ticks = new List<Int32>() { 0, 100, 1000, 2000, 3000, 2000, 1000, 100, 0 };
@@ -156,12 +156,14 @@ namespace Model
             double currentTime = stopWatch.Elapsed.TotalSeconds;
             double lastTime = stopWatch.Elapsed.TotalSeconds;
 
-            List<Double> times = new List<Double>() {0, 1.0, 2.0, 3.0, 4.0, 5.0}; ;
-            int test = motCon.createTimeVector(times, times.Count());
-            Console.Write("RegLogFactor: ");
-            Console.Write(test);
+            //List<Double> times = new List<Double>() {0, 1.0, 2.0, 3.0, 4.0, 5.0}; ;
+            //int test = motCon.createTimeVector(times, times.Count());
+            //Console.Write("RegLogFactor: ");
+            //Console.Write(test);
 
             //motCon.testLinearSensor();
+
+            motCon.goToHome();
 
             modCom.EndModbus();
 
