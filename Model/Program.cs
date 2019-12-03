@@ -100,7 +100,7 @@ namespace Model
                                 (Int16)0);                  // No source register
 
             // Set the max torque to 100 nNm
-            modCom.RunModbus(Register.MotorTorqueMax, (Int16)125);
+            modCom.RunModbus(Register.MotorTorqueMax, (Int16)300);
 
             // Variable for dummie read
             int dummieRead;
@@ -163,7 +163,9 @@ namespace Model
 
             //motCon.testLinearSensor();
 
+            //motCon.testLinearSensor();
             motCon.goToHome();
+            motCon.volumeTest();
 
             modCom.EndModbus();
 

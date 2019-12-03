@@ -49,14 +49,14 @@ namespace Model
             public const Double MotorTorquePerTorque    = 1000;             // motor Torque [mNm] per Torque [Nm]
             public const Double PressureGain            = 1;                // Analog in [VDC] to Pressure [?] gain
             public const Double PressureBias            = 0;                // Analog in [VDC] to Pressure [?] bias
-            public const Double LinearPosGain           = 100.0 / 65420.0;  // Analog in [VDC] to linear position [mm] gain.
+            public const Double LinearPosGain           = 0.00166;          // Analog in [VDC] to linear position [mm] gain.
             public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
             public const Int16  MaxTorque               = 200;              // Maximum allowed torque [mNm]
             public const Int16  MotorOffset             = 15000;            // Used to set the motorhomeposition
-            public const Double HomePosition            = 10.0;             // Homeposition of the system [mm]
+            public const Double HomePosition            = 40.0;             // Homeposition of the system [mm]
             public const Double HomePosTolerance        = 0.01;             // Tolerance for homepositon [mm]
-            public const Double MinPosition             = 1.3;              // Minimum possible position from linear sensor [mm]
-            public const Double MaxPosition             = 91.0;             // Maximum possible position from linear sensor [mm]
+            public const Double MinPosition             = 5;              // Minimum possible position from linear sensor [mm]
+            public const Double MaxPosition             = 95.0;             // Maximum possible position from linear sensor [mm]
 
         }
 
@@ -499,6 +499,80 @@ namespace Model
                 if (currentPosition < Hardware.HomePosition + Hardware.HomePosTolerance &
                     currentPosition > Hardware.HomePosition - Hardware.HomePosTolerance)
                 {
+                    done = true;
+                }
+                Console.Write("Current Position: ");
+                Console.WriteLine(currentPosition);
+
+                // Write the new position to the motor
+                ModCom.RunModbus(Register.TargetInput, newPosition);
+            }
+
+            // Turn off the motor
+            ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
+            // Set the position to 0
+            ModCom.RunModbus(Register.Position, (Int32)0);
+            // Set the target to 0
+            ModCom.RunModbus(Register.TargetInput, (Int32)0);
+        }
+        
+        public void volumeTest()
+        {
+
+            // Define variable to save keyboard input from the user
+            ConsoleKeyInfo input = new ConsoleKeyInfo();
+
+            Console.WriteLine("Press Enter to start the volume test");
+
+            // Start the volume test when enter is pressed
+            while (Console.ReadKey().Key != ConsoleKey.Enter)
+            {
+
+            }
+
+
+
+           // Initialize the motor
+            ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
+            ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
+            ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
+            ModCom.RunModbus(Register.TargetInput, (Int32)0);   // Set the target to 0
+            ModCom.RunModbus(Register.Mode, Mode.PositionRamp); // Set the mode to positonramp
+
+            // Get the current linear position
+            double currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
+            double homePos = currentPosition;
+            double dist = 22.028 + homePos;
+            int newPosition = 0;
+            bool done = false;
+            while (!done)
+            {
+
+                // Read the current position
+                currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
+
+                // Define variable for how much to inrease
+                int increase = 0;
+                // Decide how much to increase with depending on how far away from home
+                if (Math.Abs(currentPosition - dist) > 0.5)
+                {
+                    increase = 20;
+                }
+                else
+                {
+                    increase = 1;
+                }
+
+                // If the piston is to far into the syringe, turn the motor counterclockwise (piston is moved 0.mm)
+                if (currentPosition < dist  - Hardware.HomePosTolerance)
+                {
+                    // Increase the position
+                    newPosition = newPosition - increase;
+                }
+                // Check if we are done
+                else if (currentPosition > dist -  Hardware.HomePosTolerance)
+                {
+                    // Decrease the position
                     done = true;
                 }
                 Console.Write("Current Position: ");
