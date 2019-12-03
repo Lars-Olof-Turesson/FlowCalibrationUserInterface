@@ -39,8 +39,12 @@ namespace FlowCalibration
         public List<Double> logRecordedPressure;
         public List<Double> logRecordedPosition;
         public List<Double> logRecordedTarget;
+        public List<Double> integrals;
+        public List<Double> intTimes;
 
 
+
+        public ObservableCollection<DataPoint> IdealIntegral { get; private set; }
         public ObservableCollection<DataPoint> LogLinearPoints { get; private set; }
         public ObservableCollection<DataPoint> LogTargetPoints { get; private set; }
         public ObservableCollection<DataPoint> LogPositionPoints { get; private set; }
@@ -157,7 +161,7 @@ namespace FlowCalibration
 
             TrackedFlowPoints = new ObservableCollection<PointTracker>();
             ControlFlowPoints = new ObservableCollection<DataPoint>();
-
+            IdealIntegral = new ObservableCollection<DataPoint>();
 
             LogFlowPoints = new ObservableCollection<DataPoint>();
             LogVolumePoints = new ObservableCollection<DataPoint>();
@@ -193,6 +197,7 @@ namespace FlowCalibration
             List<DataPoint> points = ProfileGenerator.GetPeriodic(CurrentProfileName, Amplitude, Frequency, SamplingInterval, Repeat);
             //UpdateObservableCollectionFromIList(ControlFlowPoints, points);
             UpdateFlowProfileFromIList(points);
+            UpdateObservableCollectionFromLists(IdealIntegral, intTimes, integrals);
         }
 
         private void UpdateObservableCollectionFromIList(ObservableCollection<DataPoint> observablePoints, IList<DataPoint> pointList)
@@ -235,6 +240,10 @@ namespace FlowCalibration
                 DataPoint point = new DataPoint(times[i], values[i]);
                 ControlFlowPoints.Add(point);
                 TrackedFlowPoints.Add(new PointTracker(point.X, point.Y, i, ControlFlowPoints));
+                integrals = new List<Double>();
+                integrals = ProfileConverter.SimpleIntegrate(values, SamplingInterval);
+                intTimes = times;
+
             }
         }
 
@@ -244,15 +253,13 @@ namespace FlowCalibration
 
             List<Double> times = new List<Double>();
             List<Double> values = new List<Double>();
-            List<Double> integrals = new List<Double>();
-
-
+          
             foreach (DataPoint point in ControlFlowPoints)
             {
                 times.Add(point.X);
                 values.Add(point.Y);
             }
-            integrals = ProfileConverter.SimpleIntegrate(values, SamplingInterval);
+           
             values = ProfileConverter.FlowToVelocity(values);
             //values = ProfileConverter.FlowToPosition(times, values);
             // Run sequence on motor
@@ -273,11 +280,11 @@ namespace FlowCalibration
             
             List<Double> recordedTimes = motorControl.RecordedTimes;
 
-            List<Double> logTime                    = motorControl.LoggedTime;
-            List<Double> logRecordedLinearPositions = motorControl.LoggedLinearPositions;
-            List<Double> logRecordedPressure        = motorControl.LoggedPressures;
-            List<Double> logRecordedPosition        = motorControl.LoggedPositions;
-            List<Double> logRecordedTarget          = motorControl.LoggedTargets;
+            logTime                    = motorControl.LoggedTime;
+            logRecordedLinearPositions = motorControl.LoggedLinearPositions;
+            logRecordedPressure        = motorControl.LoggedPressures;
+            logRecordedPosition        = motorControl.LoggedPositions;
+            logRecordedTarget          = motorControl.LoggedTargets;
             //logRecordedTarget = ProfileConverter.VelocityToFlow(logRecordedTarget);
 
             UpdateObservableCollectionFromLists(LogFlowPoints,   logTime, ProfileConverter.PositionToFlow(logRecordedPosition, logTime));
@@ -288,6 +295,7 @@ namespace FlowCalibration
             UpdateObservableCollectionFromLists(LogPressurePoints,  logTime, logRecordedPressure);
             UpdateObservableCollectionFromLists(LogPositionPoints,  logTime, logRecordedPosition);
             UpdateObservableCollectionFromLists(LogTargetPoints,    logTime, logRecordedTarget);
+            
 
        
 
