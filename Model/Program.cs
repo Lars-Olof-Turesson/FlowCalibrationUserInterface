@@ -161,11 +161,27 @@ namespace Model
             //Console.Write("RegLogFactor: ");
             //Console.Write(test);
 
-            //motCon.testLinearSensor();
+            motCon.testLinearSensor();
 
             //motCon.testLinearSensor();
-            motCon.goToHome();
-            motCon.volumeTest();
+            //motCon.goToHome();
+            //motCon.volumeTest();
+            Console.WriteLine("Changing baudrate");
+            //modCom.RunModbus(52, (Int16)260);
+
+            // Tune the regulator
+            modCom.RunModbus(300, (Int16)100); //P
+            modCom.RunModbus(301, 0); //I
+            modCom.RunModbus(302, 0); //D
+
+            Console.Write("P-parameter:");
+            Console.WriteLine(modCom.ReadModbus(300, 1, false));
+            Console.Write("I-parameter:");
+            Console.WriteLine(modCom.ReadModbus(301, 1, false));
+            Console.Write("D-parameter:");
+            Console.WriteLine(modCom.ReadModbus(302, 1, false));
+            Console.Write("Friction-parameter:");
+            Console.WriteLine(modCom.ReadModbus(305, 1, false));
 
             modCom.EndModbus();
 

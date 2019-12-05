@@ -35,6 +35,9 @@ namespace Model
         public List<Double> LoggedPressures { get; set; }       // List to store the measured pressure (Analog input)
         public List<Double> LoggedLinearPositions { get; set; } // List to store the measured linear position (Analog input)
 
+        // Saving the logged homePosition
+        //public Double = LoggedHomePosition { get; set }         // Variable to store the current Homeposition
+
         // Define list for the time vector corresponding to the logged values
         public List<Double> LoggedTime { get; set; }
 
@@ -49,11 +52,11 @@ namespace Model
             public const Double MotorTorquePerTorque    = 1000;             // motor Torque [mNm] per Torque [Nm]
             public const Double PressureGain            = 1;                // Analog in [VDC] to Pressure [?] gain
             public const Double PressureBias            = 0;                // Analog in [VDC] to Pressure [?] bias
-            public const Double LinearPosGain           = 0.00166;          // Analog in [VDC] to linear position [mm] gain.
+            public const Double LinearPosGain           = 0.001645;          // Analog in [VDC] to linear position [mm] gain.
             public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
             public const Int16  MaxTorque               = 200;              // Maximum allowed torque [mNm]
             public const Int16  MotorOffset             = 15000;            // Used to set the motorhomeposition
-            public const Double HomePosition            = 40.0;             // Homeposition of the system [mm]
+            public const Double HomePosition            = 10.0;             // Homeposition of the system [mm]   
             public const Double HomePosTolerance        = 0.01;             // Tolerance for homepositon [mm]
             public const Double MinPosition             = 5;              // Minimum possible position from linear sensor [mm]
             public const Double MaxPosition             = 95.0;             // Maximum possible position from linear sensor [mm]
@@ -266,6 +269,20 @@ namespace Model
             // TODO!!!!
             goToHome(); // This function should be implemented
 
+            // Tune the regulator
+            ModCom.RunModbus(300, (Int16)10000); //P
+            ModCom.RunModbus(301, (Int16)1000); //I
+            ModCom.RunModbus(302, (Int16)0); //D
+
+            Console.Write("P-parameter:");
+            Console.WriteLine(ModCom.ReadModbus(300, 1, false));
+            Console.Write("I-parameter:");
+            Console.WriteLine(ModCom.ReadModbus(301, 1, false));
+            Console.Write("D-parameter:");
+            Console.WriteLine(ModCom.ReadModbus(302, 1, false));
+            Console.Write("Friction-parameter:");
+            Console.WriteLine(ModCom.ReadModbus(305, 1, false));
+
             // Initializing the motor
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
             ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
@@ -296,7 +313,7 @@ namespace Model
 
             }
             // Stop logging
-            ModCom.RunModbus(Register.LogState, (short)0);
+            //ModCom.RunModbus(Register.LogState, (short)0);
             // Set target to zero
             ModCom.RunModbus(Register.TargetInput, (Int32)0);
             // Turn off the motor
@@ -308,7 +325,7 @@ namespace Model
                              LogRecordedPressures, LogRecordedLinearPositions, 1);
 
             // Convert Ticks to positions
-            LoggedPositions = TickToPosition(LogRecordedPositions);
+            LoggedPositions = MotorSpeedToVelocity(LogRecordedPositions);
             // Convert Ticks to velocity
             LoggedTargets = TicksPerSecondToVelocity(LogRecordedTargets);
             // Convert uns16 to VDc
@@ -335,7 +352,7 @@ namespace Model
             List<Double> velocities = new List<Double>();
             for (int i = 0; i < motorSpeeds.Count; i++)
             {
-                velocities.Add(-(Double) motorSpeeds[i] /256.0 );
+                velocities.Add(-(Double) motorSpeeds[i] * Hardware.Pitch /256.0 );
             }
             return velocities;
         }
@@ -356,7 +373,7 @@ namespace Model
             List<Int32> ticks = new List<Int32>();
             for (int i = 0; i < velocities.Count; i++)
             {
-                ticks.Add(-(int)Math.Round(velocities[i] * 10 * Hardware.TicksPerRev / Hardware.Pitch / Hardware.VelocityResolution));
+                ticks.Add(-(int)Math.Round(velocities[i] * Hardware.TicksPerRev / Hardware.Pitch / Hardware.VelocityResolution));
             }
             return ticks;
         }
@@ -378,7 +395,7 @@ namespace Model
             List<Double> velocity = new List<Double>();
             for (int i = 0; i < ticksPerSecond.Count; i++)
             {
-                velocity.Add(-(Double)ticksPerSecond[i] * Hardware.Pitch * Hardware.VelocityResolution / Hardware.TicksPerRev / 10);
+                velocity.Add(-(Double)ticksPerSecond[i] * Hardware.Pitch * Hardware.VelocityResolution / Hardware.TicksPerRev);
             }
             return velocity;
         }
@@ -442,6 +459,11 @@ namespace Model
         // Function to initialize the motor and set the system in its home position
         public void goToHome()
         {
+            // Tune the regulator
+            ModCom.RunModbus(300, (Int16)1000); //P
+            ModCom.RunModbus(301, (Int16)1000); //I
+            ModCom.RunModbus(302, (Int16)0); //D
+
             // Get the current linear position
             double currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
 
@@ -542,14 +564,14 @@ namespace Model
             // Get the current linear position
             double currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
             double homePos = currentPosition;
-            double dist = 22.028 + homePos;
+            double dist = 70.0 + homePos;
             int newPosition = 0;
             bool done = false;
             while (!done)
             {
 
                 // Read the current position
-                currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
+                currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain + Hardware.LinearPosBias;
 
                 // Define variable for how much to inrease
                 int increase = 0;
@@ -595,8 +617,8 @@ namespace Model
         {
             // Get the maximum time from the input tick sequence 
             Double MaxTime = times[sequenceLength - 1];
-            Console.Write("Max Time: ");
-            Console.WriteLine(MaxTime);
+            //Console.Write("Max Time: ");
+            //Console.WriteLine(MaxTime);
             // Calculate the logfactor that will be used as input to the ReqPeriod register.
             int LogFactor = (int)Math.Ceiling(MaxTime * (Hardware.TimePerSecond / 500.0));
             // Subtract 1 to enable the factor to directly fed to the logging register.
@@ -608,7 +630,7 @@ namespace Model
                 // Compute the time value
                 double time = t * LogFactor / Hardware.TimePerSecond;
                 LoggedTime.Add(time);
-                Console.WriteLine(time);
+                //Console.WriteLine(time);
             }
             return RegLogFactor;
         }
@@ -726,7 +748,7 @@ namespace Model
                 int Position = ModCom.ReadModbus(Register.LinearPosition, 1, false);
                 double PositionMM = Position * Hardware.LinearPosGain;
                 Console.WriteLine("Position: ");
-                Console.WriteLine(PositionMM.ToString());
+                Console.WriteLine(Position.ToString());
             }
             Console.WriteLine("Exiting manual control");
         }

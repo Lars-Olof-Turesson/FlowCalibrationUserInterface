@@ -197,7 +197,7 @@ namespace FlowCalibration
             List<DataPoint> points = ProfileGenerator.GetPeriodic(CurrentProfileName, Amplitude, Frequency, SamplingInterval, Repeat);
             //UpdateObservableCollectionFromIList(ControlFlowPoints, points);
             UpdateFlowProfileFromIList(points);
-            UpdateObservableCollectionFromLists(IdealIntegral, intTimes, integrals);
+            //UpdateObservableCollectionFromLists(IdealIntegral, intTimes, integrals);
         }
 
         private void UpdateObservableCollectionFromIList(ObservableCollection<DataPoint> observablePoints, IList<DataPoint> pointList)
@@ -285,7 +285,8 @@ namespace FlowCalibration
             logRecordedPressure        = motorControl.LoggedPressures;
             logRecordedPosition        = motorControl.LoggedPositions;
             logRecordedTarget          = motorControl.LoggedTargets;
-            //logRecordedTarget = ProfileConverter.VelocityToFlow(logRecordedTarget);
+            logRecordedTarget          = ProfileConverter.VelocityToFlow(logRecordedTarget);
+            logRecordedPosition = ProfileConverter.VelocityToFlow(logRecordedPosition); 
 
             UpdateObservableCollectionFromLists(LogFlowPoints,   logTime, ProfileConverter.PositionToFlow(logRecordedPosition, logTime));
             UpdateObservableCollectionFromLists(LogVolumePoints, recordedTimes, recordedVolumes);
