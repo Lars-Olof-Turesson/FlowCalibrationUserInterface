@@ -20,7 +20,7 @@ namespace Model
         ModbusCommunication ModCom { get; set; }
 
 
-        // Define lists to storerecorded values from the motor
+        // Define lists to storerecorded values from the motor. OLD SHIT!!!
         public List<Double> RecordedTimes { get; set; }          // List to store the timestamps from the motor
         public List<Double> RecordedPositions { get; set; }      // List to store the positions from motor
         public List<Double> RecordedVelocities { get; set; }     // List to store the velocities from the motor
@@ -46,7 +46,7 @@ namespace Model
         struct Hardware
         {
             //DEFINE HARDWARE PARAMETERS
-            public const Double Pitch                   = 32;               // Circumference of gearwheel [mm]
+            public const Double Pitch                   = 32.01;               // Circumference of gearwheel [mm]
             public const Double TicksPerRev             = 4096;             // ticks per revolution (4096 positions on one revolution)
             public const Double VelocityResolution      = 16;               // velocity resolution (position resolution / constant)
             public const Double TimePerSecond           = 2000;             // time register (+2000 each second)
@@ -515,7 +515,7 @@ namespace Model
             int newPosition = 0;
 
             // Initialize the motor
-            ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
+            ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
             ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
             ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
             ModCom.RunModbus(Register.TargetInput, (Int32)0);   // Set the target to 0
@@ -591,7 +591,7 @@ namespace Model
 
 
            // Initialize the motor
-            ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
+            ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
             ModCom.RunModbus(Register.Speed, (Int32)0);         // Set the speed to 0
             ModCom.RunModbus(Register.Position, (Int32)0);      // Set the position to 0
             ModCom.RunModbus(Register.TargetInput, (Int32)0);   // Set the target to 0
@@ -777,8 +777,8 @@ namespace Model
             }
         }
 
-            // Function for initial test of linear sensor.
-            public void testLinearSensor()
+        // Function for initial test of linear sensor.
+        public void testLinearSensor()
         {
             // Write to the console
             Console.WriteLine("Test of Linear sensor active!");
