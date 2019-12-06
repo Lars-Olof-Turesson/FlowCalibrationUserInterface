@@ -50,16 +50,29 @@ namespace Model
             public const Double VelocityResolution      = 16;               // velocity resolution (position resolution / constant)
             public const Double TimePerSecond           = 2000;             // time register (+2000 each second)
             public const Double MotorTorquePerTorque    = 1000;             // motor Torque [mNm] per Torque [Nm]
+
             public const Double PressureGain            = 1;                // Analog in [VDC] to Pressure [?] gain
             public const Double PressureBias            = 0;                // Analog in [VDC] to Pressure [?] bias
-            public const Double LinearPosGain           = 0.001645;          // Analog in [VDC] to linear position [mm] gain.
-            public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
+            //public const Double LinearPosGain           = 0.001645;          // Analog in [VDC] to linear position [mm] gain.
+            //public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
+            
             public const Int16  MaxTorque               = 200;              // Maximum allowed torque [mNm]
-            public const Int16  MotorOffset             = 15000;            // Used to set the motorhomeposition
+            
             public const Double HomePosition            = 10.0;             // Homeposition of the system [mm]   
             public const Double HomePosTolerance        = 0.01;             // Tolerance for homepositon [mm]
             public const Double MinPosition             = 5;              // Minimum possible position from linear sensor [mm]
-            public const Double MaxPosition             = 95.0;             // Maximum possible position from linear sensor [mm]
+            public const Double MaxPosition             = 98.0;             // Maximum possible position from linear sensor [mm]
+            
+            // Constants for polynomial to convert from linear sensor reading to mm
+            public const Double P1  = 0.037019062835858;
+            public const Double P2  = 0.109436390195930;
+            public const Double P3  = -0.239489917466821;
+            public const Double P4  = -1.777499203864061;
+            public const Double P5  = 1.194829066662426;
+            public const Double P6  = 35.69061189682709;
+            public const Double P7  = 52.382724912178460;
+            public const Double Mu1 = 32611.28571428571;
+            public const Double Mu2 = 20410.47887932406;
 
         }
 
@@ -266,8 +279,8 @@ namespace Model
             // Add time values to LoggedTime and compute the LogFactor for logging
             int RegLogFactor = createTimeVector(times, sequenceLength);
 
-            // TODO!!!!
-            goToHome(); // This function should be implemented
+            // Run the system to its home position
+            goToHome(); 
 
             // Tune the regulator
             ModCom.RunModbus(300, (Int16)10000); //P
@@ -329,9 +342,9 @@ namespace Model
             // Convert Ticks to velocity
             LoggedTargets = TicksPerSecondToVelocity(LogRecordedTargets);
             // Convert uns16 to VDc
-            LoggedPressures = uns16ToVDc(LogRecordedPressures);
+            //LoggedPressures = uns16ToVDc(LogRecordedPressures);
             // Convert uns16 to linear position
-            LoggedLinearPositions = uns16ToLinPos(LogRecordedLinearPositions);
+            //LoggedLinearPositions = uns16ToLinPos(LogRecordedLinearPositions);
 
             //-------------------OLD VERSION----------------------------------------//
             // Ticks to positions                                                   //
@@ -433,15 +446,36 @@ namespace Model
             return pressure;
         }
 
-        // Function to convert from Analogin [uns16] to Linear position [mm]
-        public List<Double> uns16ToLinPos(IList<int> VDc)
+        // Function to convert¨List from linear sensorreading [uns16] to Linear position [mm]
+        public List<Double> sensorToLinPosList(IList<int> sensorReading)
         {
             List<Double> linearPos = new List<Double>();
-            for (int i = 0; i < VDc.Count; i++)
+            for (int i = 0; i < sensorReading.Count; i++)
             {
-                linearPos.Add((Double)VDc[i] * Hardware.LinearPosGain + Hardware.LinearPosBias);
-                //Console.WriteLine(linearPos[i]);
+                Double temp = (Double)((Double)sensorReading[i] - Hardware.Mu1) / Hardware.Mu2;
+                Double linearPosition = Hardware.P1 * Math.Pow(temp,6) +
+                                        Hardware.P2 * Math.Pow(temp, 5) +
+                                        Hardware.P3 * Math.Pow(temp, 4) +
+                                        Hardware.P4 * Math.Pow(temp, 3) +
+                                        Hardware.P5 * Math.Pow(temp, 2) +
+                                        Hardware.P6 * Math.Pow(temp, 1) +
+                                        Hardware.P7;
+                linearPos.Add(linearPosition);
             }
+            return linearPos;
+        }
+
+        // Function to convert number from linear sensorreading [uns16] to Linear position [mm]
+        public Double sensorToLinPos(int sensorReading)
+        {
+            Double temp = (Double)((Double)sensorReading - Hardware.Mu1) / Hardware.Mu2;
+            Double linearPos = Hardware.P1 * Math.Pow(temp, 6) +
+                               Hardware.P2 * Math.Pow(temp, 5) +
+                               Hardware.P3 * Math.Pow(temp, 4) +
+                               Hardware.P4 * Math.Pow(temp, 3) +
+                               Hardware.P5 * Math.Pow(temp, 2) +
+                               Hardware.P6 * Math.Pow(temp, 1) +
+                               Hardware.P7;
             return linearPos;
         }
 
@@ -465,7 +499,7 @@ namespace Model
             ModCom.RunModbus(302, (Int16)0); //D
 
             // Get the current linear position
-            double currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
+            double currentPosition = sensorToLinPos(ModCom.ReadModbus(Register.LinearPosition, 1, false));
 
             // Chech if the current linear position is valid, if not throw an error
             if (currentPosition > Hardware.MaxPosition | currentPosition < Hardware.MinPosition)
@@ -490,7 +524,7 @@ namespace Model
             while (!done)
             {
                 // Read the current position
-                currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
+                currentPosition = (Double) sensorToLinPos(ModCom.ReadModbus(Register.LinearPosition, 1, false));
 
                 // Define variable for how much to inrease
                 int increase = 0;
@@ -562,16 +596,16 @@ namespace Model
             ModCom.RunModbus(Register.Mode, Mode.PositionRamp); // Set the mode to positonramp
 
             // Get the current linear position
-            double currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain;
+            double currentPosition = sensorToLinPos(ModCom.ReadModbus(Register.LinearPosition, 1, false));
             double homePos = currentPosition;
-            double dist = 70.0 + homePos;
+            double dist = 70.79 + homePos;
             int newPosition = 0;
             bool done = false;
             while (!done)
             {
 
                 // Read the current position
-                currentPosition = (Double)ModCom.ReadModbus(Register.LinearPosition, 1, false) * Hardware.LinearPosGain + Hardware.LinearPosBias;
+                currentPosition = sensorToLinPos(ModCom.ReadModbus(Register.LinearPosition, 1, false));
 
                 // Define variable for how much to inrease
                 int increase = 0;
@@ -746,7 +780,9 @@ namespace Model
             while (true)
             {
                 int Position = ModCom.ReadModbus(Register.LinearPosition, 1, false);
-                double PositionMM = Position * Hardware.LinearPosGain;
+                double PositionMM = sensorToLinPos(Position);
+                Console.WriteLine("PositionMM: ");
+                Console.WriteLine(PositionMM.ToString());
                 Console.WriteLine("Position: ");
                 Console.WriteLine(Position.ToString());
             }

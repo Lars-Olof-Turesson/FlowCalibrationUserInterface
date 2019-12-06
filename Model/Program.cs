@@ -161,11 +161,11 @@ namespace Model
             //Console.Write("RegLogFactor: ");
             //Console.Write(test);
 
-            motCon.testLinearSensor();
+            //motCon.testLinearSensor();
 
             //motCon.testLinearSensor();
-            //motCon.goToHome();
-            //motCon.volumeTest();
+            motCon.goToHome();
+            motCon.volumeTest();
             Console.WriteLine("Changing baudrate");
             //modCom.RunModbus(52, (Int16)260);
 
