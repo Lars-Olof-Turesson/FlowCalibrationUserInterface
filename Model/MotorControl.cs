@@ -30,10 +30,11 @@ namespace Model
 
 
         // Define lists for logged values from the motor
-        public List<Double> LoggedPositions { get; set; }       // List to store the positions from motor
+        public List<Double> LoggedVelocities { get; set; }       // List to store the positions from motor
         public List<Double> LoggedTargets { get; set; }         // List to store the current from the motor
         public List<Double> LoggedPressures { get; set; }       // List to store the measured pressure (Analog input)
-        public List<Double> LoggedLinearPositions { get; set; } // List to store the measured linear position (Analog input)
+        public List<Double> LoggedLinearPositions { get; set; } // List to store the measured linear position in mm
+        public List<int>    LoggedSensorValues    { get; set; } // List to store the measured linear position sensor value
 
         // Saving the logged homePosition
         //public Double = LoggedHomePosition { get; set }         // Variable to store the current Homeposition
@@ -198,10 +199,11 @@ namespace Model
             //--------------------------------------------------------------------------------- //
 
             // Create empty lists to store values that should be logged from the motor controller
-            LoggedPositions         = new List<Double>();
+            LoggedVelocities        = new List<Double>();
             LoggedTargets           = new List<Double>();
             LoggedPressures         = new List<Double>();
             LoggedLinearPositions   = new List<Double>();
+            LoggedSensorValues      = new List<int>();
             // Create empty list to store the time vector corresponding to logged values
             LoggedTime              = new List<Double>();
 
@@ -268,7 +270,7 @@ namespace Model
             //----------------------------------------------------------------- //
 
             // Define lists to save logged motor values
-            Int32[] LogRecordedPositions = new Int32[500];
+            Int32[] LogRecordedVelocities = new Int32[500];
             Int32[] LogRecordedTargets = new Int32[500];
             Int32[] LogRecordedPressures = new Int32[500];
             Int32[] LogRecordedLinearPositions = new Int32[500];
@@ -334,17 +336,16 @@ namespace Model
             // Stop counting the time
             stopWatch.Stop();
             // Read and save logged values from motor
-            saveLoggedValues(LogRecordedPositions, LogRecordedTargets,
+            saveLoggedValues(LogRecordedVelocities, LogRecordedTargets,
                              LogRecordedPressures, LogRecordedLinearPositions, 1);
 
             // Convert Ticks to positions
-            LoggedPositions = MotorSpeedToVelocity(LogRecordedPositions);
+            LoggedVelocities = MotorSpeedToVelocity(LogRecordedVelocities);
             // Convert Ticks to velocity
             LoggedTargets = TicksPerSecondToVelocity(LogRecordedTargets);
-            // Convert uns16 to VDc
-            //LoggedPressures = uns16ToVDc(LogRecordedPressures);
-            // Convert uns16 to linear position
-            //LoggedLinearPositions = uns16ToLinPos(LogRecordedLinearPositions);
+            // Convert sensorreading to linear position
+            LoggedLinearPositions = sensorToLinPosList(LogRecordedLinearPositions);
+            LoggedPressures = uns16ToVDc(LogRecordedPressures);
 
             //-------------------OLD VERSION----------------------------------------//
             // Ticks to positions                                                   //
@@ -563,7 +564,8 @@ namespace Model
                 // Write the new position to the motor
                 ModCom.RunModbus(Register.TargetInput, newPosition);
             }
-
+            Console.Write("Current Position: ");
+            Console.WriteLine(currentPosition);
             // Turn off the motor
             ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
             // Set the position to 0
@@ -598,9 +600,15 @@ namespace Model
             // Get the current linear position
             double currentPosition = sensorToLinPos(ModCom.ReadModbus(Register.LinearPosition, 1, false));
             double homePos = currentPosition;
-            double dist = 70.79 + homePos;
+            double dist = 3.304 + homePos;
             int newPosition = 0;
             bool done = false;
+
+            Console.Write("Start Position in MM: ");
+            Console.WriteLine(currentPosition);
+            Console.Write("Start Position: ");
+            Console.WriteLine(ModCom.ReadModbus(Register.LinearPosition, 1, false));
+
             while (!done)
             {
 
@@ -631,19 +639,24 @@ namespace Model
                     // Decrease the position
                     done = true;
                 }
-                Console.Write("Current Position: ");
-                Console.WriteLine(currentPosition);
-
+              
                 // Write the new position to the motor
                 ModCom.RunModbus(Register.TargetInput, newPosition);
             }
 
+
             // Turn off the motor
-            ModCom.RunModbus(Register.Mode, Mode.MotorOff); // Set the mode to positonramp
+            ModCom.RunModbus(Register.Mode, Mode.MotorOff);
             // Set the position to 0
             ModCom.RunModbus(Register.Position, (Int32)0);
             // Set the target to 0
             ModCom.RunModbus(Register.TargetInput, (Int32)0);
+
+
+            Console.Write("End Position in MM: ");
+            Console.WriteLine(currentPosition);
+            Console.Write("End Position: ");
+            Console.WriteLine(ModCom.ReadModbus(Register.LinearPosition, 1, false));
         }
 
         // Function to create the time vector. Adds the times to LoggedTime and returns the RegLogFactor
@@ -701,7 +714,7 @@ namespace Model
         // Function for reading and saving the logged values
         // Position = 1     Logging for position control
         // Position = 0     Logging for velocity control
-        public void saveLoggedValues(int[] LogRecordedPositions, int[] LogRecordedTargets,
+        public void saveLoggedValues(int[] LogRecordedVelocities, int[] LogRecordedTargets,
                                      int[] LogRecordedPressures, int[] LogRecordedLinearPositions,
                                      int Position)
         {
@@ -714,21 +727,20 @@ namespace Model
                 ushort ch3 = (ushort)(Register.LogRegisterValue3 + j);
                 ushort ch4 = (ushort)(Register.LogRegisterValue4 + j);
                 // Read values
-                LogRecordedPositions[j]         = ModCom.ReadModbus(ch1, 1, false);
+                LogRecordedVelocities[j]        = ModCom.ReadModbus(ch1, 1, false);
                 LogRecordedTargets[j]           = ModCom.ReadModbus(ch2, 1, false);
                 LogRecordedPressures[j]         = ModCom.ReadModbus(ch3, 1, false);
                 LogRecordedLinearPositions[j]   = ModCom.ReadModbus(ch4, 1, false);
-                Console.Write("Logged Motorspeeds");
-                Console.WriteLine(LogRecordedPositions[j]);
+                LoggedSensorValues.Add(LogRecordedLinearPositions[j]);
             }
             //Loop for converting LSB part of int32 to int16
             for (int o = 0; o < 500; o++)
             {
                 if (Position == 1)
                 {
-                    byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedPositions[o]);
+                    byte[] bytes = BitConverter.GetBytes((ushort)LogRecordedVelocities[o]);
                     short y = BitConverter.ToInt16(bytes, 0);
-                    LogRecordedPositions[o] = (int)y;
+                    LogRecordedVelocities[o] = (int)y;
                 }
                 byte[] bytes2 = BitConverter.GetBytes((ushort)LogRecordedTargets[o]);
                 short x = BitConverter.ToInt16(bytes2, 0);

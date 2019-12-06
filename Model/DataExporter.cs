@@ -56,7 +56,7 @@ namespace Model
                 values.Add(value);
             }
         }
-        public static void SaveTimeAnd4ValuesToCsv(IList<Double> times, IList<Double> datas1, IList<Double> datas2, IList<Double> datas3, IList<Double> datas4, String filePath)
+        public static void SaveTimeAnd5ValuesToCsv(IList<Double> times, IList<Double> datas1, IList<int> datas2, IList<Double> datas3, IList<Double> datas4, IList<Double> datas5, String filePath)
         {
 
             // Throw an error if the number of values is not equal to the number of times 
@@ -76,8 +76,10 @@ namespace Model
                 String data2 = datas2[i].ToString(CultureInfo.InvariantCulture);
                 String data3 = datas3[i].ToString(CultureInfo.InvariantCulture);
                 String data4 = datas4[i].ToString(CultureInfo.InvariantCulture);
+                String data5 = datas5[i].ToString(CultureInfo.InvariantCulture);
 
-                String line = string.Format("{0},{1},{2},{3},{4}", time, data1, data2, data3, data4);
+
+                String line = string.Format("{0},{1},{2},{3},{4},{5}", time, data1, data2, data3, data4, data5);
                 stringBuilder.AppendLine(line);
             }
 

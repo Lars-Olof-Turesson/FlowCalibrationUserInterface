@@ -141,7 +141,7 @@ namespace FlowCalibration
             //List<Double> listT = new List<Double>() { 0, 5, 10 };
             if (saveDialog.ShowDialog() == true)
             {
-                Model.DataExporter.SaveTimeAnd4ValuesToCsv(ViewModel.logTime, ViewModel.logRecordedLinearPositions, ViewModel.logRecordedPosition, ViewModel.logRecordedPressure, ViewModel.logRecordedTarget, saveDialog.FileName);
+                Model.DataExporter.SaveTimeAnd5ValuesToCsv(ViewModel.logTime, ViewModel.logRecordedLinearPositions, ViewModel.logRecordedSensor, ViewModel.logRecordedVelocity, ViewModel.logRecordedPressure, ViewModel.logRecordedTarget, saveDialog.FileName);
                 //Model.DataExporter.SaveTimeAnd4ValuesToCsv(listT, list1, list2, list3, list4, saveDialog.FileName);
             }
         }

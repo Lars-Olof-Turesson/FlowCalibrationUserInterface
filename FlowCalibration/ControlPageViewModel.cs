@@ -35,9 +35,12 @@ namespace FlowCalibration
         public ObservableCollection<DataPoint> LogVolumePoints { get; private set; }
 
         public List<Double> logTime;
+        public List<int>    logRecordedSensor;
         public List<Double> logRecordedLinearPositions;
         public List<Double> logRecordedPressure;
-        public List<Double> logRecordedPosition;
+        public List<Double> logRecordedVelocity;
+        public List<Double> logRecordedFlow;
+        public List<Double> logRecordedVolume;
         public List<Double> logRecordedTarget;
         public List<Double> integrals;
         public List<Double> intTimes;
@@ -46,8 +49,9 @@ namespace FlowCalibration
 
         public ObservableCollection<DataPoint> IdealIntegral { get; private set; }
         public ObservableCollection<DataPoint> LogLinearPoints { get; private set; }
+        public ObservableCollection<DataPoint> LogSensorPoints { get; private set; }
         public ObservableCollection<DataPoint> LogTargetPoints { get; private set; }
-        public ObservableCollection<DataPoint> LogPositionPoints { get; private set; }
+        public ObservableCollection<DataPoint> LogVelocityPoints { get; private set; }
         public ObservableCollection<DataPoint> LogPressurePoints { get; private set; }
 
 
@@ -167,8 +171,9 @@ namespace FlowCalibration
             LogVolumePoints = new ObservableCollection<DataPoint>();
             //Recorded Collections
             LogLinearPoints = new ObservableCollection<DataPoint>();
+            LogSensorPoints = new ObservableCollection<DataPoint>();
             LogTargetPoints = new ObservableCollection<DataPoint>();
-            LogPositionPoints = new ObservableCollection<DataPoint>();
+            LogVelocityPoints = new ObservableCollection<DataPoint>();
             LogPressurePoints = new ObservableCollection<DataPoint>(); 
 
 
@@ -213,6 +218,15 @@ namespace FlowCalibration
         {
             observablePoints.Clear();
             for(int i=0; i<values.Count(); i++)
+            {
+                observablePoints.Add(new DataPoint(times[i], values[i]));
+            }
+        }
+
+        private void UpdateObservableCollectionFromLists(ObservableCollection<DataPoint> observablePoints, List<double> times, List<int> values)
+        {
+            observablePoints.Clear();
+            for (int i = 0; i < values.Count(); i++)
             {
                 observablePoints.Add(new DataPoint(times[i], values[i]));
             }
@@ -282,19 +296,20 @@ namespace FlowCalibration
 
             logTime                    = motorControl.LoggedTime;
             logRecordedLinearPositions = motorControl.LoggedLinearPositions;
+            logRecordedSensor          = motorControl.LoggedSensorValues;
             logRecordedPressure        = motorControl.LoggedPressures;
-            logRecordedPosition        = motorControl.LoggedPositions;
+            logRecordedVelocity        = motorControl.LoggedVelocities;
             logRecordedTarget          = motorControl.LoggedTargets;
             logRecordedTarget          = ProfileConverter.VelocityToFlow(logRecordedTarget);
-            logRecordedPosition = ProfileConverter.VelocityToFlow(logRecordedPosition); 
+            logRecordedVolume          = ProfileConverter.PositionToVolume(logRecordedLinearPositions);
+            logRecordedFlow            = ProfileConverter.PositionToFlow(logRecordedLinearPositions, logTime); 
 
-            UpdateObservableCollectionFromLists(LogFlowPoints,   logTime, ProfileConverter.PositionToFlow(logRecordedPosition, logTime));
-            UpdateObservableCollectionFromLists(LogVolumePoints, recordedTimes, recordedVolumes);
-            
-
+            UpdateObservableCollectionFromLists(LogFlowPoints,      logTime, logRecordedFlow);
+            UpdateObservableCollectionFromLists(LogVolumePoints,    logTime, logRecordedVolume);
             UpdateObservableCollectionFromLists(LogLinearPoints,    logTime, logRecordedLinearPositions);
+            UpdateObservableCollectionFromLists(LogSensorPoints,    logTime, logRecordedSensor);
             UpdateObservableCollectionFromLists(LogPressurePoints,  logTime, logRecordedPressure);
-            UpdateObservableCollectionFromLists(LogPositionPoints,  logTime, logRecordedPosition);
+            UpdateObservableCollectionFromLists(LogVelocityPoints,  logTime, logRecordedVelocity);
             UpdateObservableCollectionFromLists(LogTargetPoints,    logTime, logRecordedTarget);
             
 
@@ -302,11 +317,11 @@ namespace FlowCalibration
 
             RecordedProfile = CurrentProfileName;
             RecordedDateTime = DateTime.Now.ToString();
-            RecordedMaxTime = motorControl.RecordedTimes.Last();
-            RecordedMaxFlow = recordedFlows.Max();
+            RecordedMaxTime = logTime.Last();
+            RecordedMaxFlow = logRecordedFlow.Max();
             RecordedMinFlow = recordedFlows.Min();
-            RecordedMaxVolume = recordedVolumes.Max();
-            RecordedMinVolume = recordedVolumes.Min();
+            RecordedMaxVolume = logRecordedVolume.Max();
+            RecordedMinVolume = logRecordedVolume.Min();
         }
 
 
