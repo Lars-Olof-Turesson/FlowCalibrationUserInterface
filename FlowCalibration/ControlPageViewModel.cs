@@ -301,10 +301,9 @@ namespace FlowCalibration
             logRecordedPressure        = motorControl.LoggedPressures;
             logRecordedVelocity        = motorControl.LoggedVelocities;
             logRecordedTarget          = motorControl.LoggedTargets;
-            logRecordedTargetVelocity  = ProfileConverter.VelocityToFlow(logRecordedTarget);
+            logRecordedTarget          = ProfileConverter.VelocityToFlow(logRecordedTarget);
             logRecordedVolume          = ProfileConverter.PositionToVolume(logRecordedLinearPositions);
-            logRecordedFlow            = ProfileConverter.VelocityToFlow(logRecordedVelocity);
-            //logRecordedFlow            = ProfileConverter.PositionToFlow(logRecordedLinearPositions, logTime); 
+            logRecordedFlow            = ProfileConverter.PositionToFlow(logRecordedLinearPositions, logTime); 
 
             UpdateObservableCollectionFromLists(LogFlowPoints,      logTime, logRecordedFlow);
             UpdateObservableCollectionFromLists(LogVolumePoints,    logTime, logRecordedVolume);
@@ -312,7 +311,7 @@ namespace FlowCalibration
             UpdateObservableCollectionFromLists(LogSensorPoints,    logTime, logRecordedSensor);
             UpdateObservableCollectionFromLists(LogPressurePoints,  logTime, logRecordedPressure);
             UpdateObservableCollectionFromLists(LogVelocityPoints,  logTime, logRecordedVelocity);
-            UpdateObservableCollectionFromLists(LogTargetPoints,    logTime, logRecordedTargetVelocity);
+            UpdateObservableCollectionFromLists(LogTargetPoints,    logTime, logRecordedTarget);
             
 
        
