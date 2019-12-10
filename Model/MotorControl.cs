@@ -57,11 +57,11 @@ namespace Model
             //public const Double LinearPosGain           = 0.001645;          // Analog in [VDC] to linear position [mm] gain.
             //public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
             
-            public const Int16  MaxTorque               = 200;              // Maximum allowed torque [mNm]
+            public const Int16  MaxTorque               = 300;              // Maximum allowed torque [mNm]
             
             public const Double HomePosition            = 10.0;             // Homeposition of the system [mm]   
             public const Double HomePosTolerance        = 0.01;             // Tolerance for homepositon [mm]
-            public const Double MinPosition             = 5;              // Minimum possible position from linear sensor [mm]
+            public const Double MinPosition             = 5;                // Minimum possible position from linear sensor [mm]
             public const Double MaxPosition             = 98.0;             // Maximum possible position from linear sensor [mm]
             
             // Constants for polynomial to convert from linear sensor reading to mm
@@ -307,13 +307,15 @@ namespace Model
             ModCom.RunModbus(Register.Mode, mode);
             // Set time = 0 in the motor time register
             ModCom.RunModbus(Register.Time, (Int32)0);
-            // Start to measure time at computer
-            stopWatch.Start();
+            
             // Setup and start the logging
             setupLogging(RegLogFactor, 0);
 
             // Start to run the actual sequence and send regulator targets to the motor
             int i = 0;
+
+            // Start to measure time at computer
+            stopWatch.Start();
             while (i < sequenceLength)
             {
                 // If more time have elapsed than times[i], send a new regulator target to the motor
@@ -718,6 +720,9 @@ namespace Model
                                      int[] LogRecordedPressures, int[] LogRecordedLinearPositions,
                                      int Position)
         {
+            // Tmpty the lists for logged values, to avoid problem with lists growing
+            LoggedPressures = new List<Double>();
+            LoggedSensorValues = new List<int>();
             // Save values from the log registers
             for (ushort j = 0; j< 500; j++)
             {
@@ -732,7 +737,7 @@ namespace Model
                 LogRecordedPressures[j]         = ModCom.ReadModbus(ch3, 1, false);
                 LogRecordedLinearPositions[j]   = ModCom.ReadModbus(ch4, 1, false);
                 LoggedSensorValues.Add(LogRecordedLinearPositions[j]);
-                LoggedPressures.Add((Double)LogRecordedPressures[j] - 32767);
+                LoggedPressures.Add((Double)LogRecordedPressures[j] - LogRecordedPressures[0]);
             }
             //Loop for converting LSB part of int32 to int16
             for (int o = 0; o < 500; o++)
@@ -746,6 +751,10 @@ namespace Model
                 byte[] bytes2 = BitConverter.GetBytes((ushort)LogRecordedTargets[o]);
                 short x = BitConverter.ToInt16(bytes2, 0);
                 LogRecordedTargets[o] = (int)x;
+                Console.Write("Target");
+                Console.WriteLine(LogRecordedTargets[o]);
+                Console.Write("Velocity");
+                Console.WriteLine(LogRecordedVelocities[o]);
             }
         }
 

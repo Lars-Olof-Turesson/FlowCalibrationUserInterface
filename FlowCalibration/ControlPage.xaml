@@ -188,7 +188,6 @@
                         <oxy:LineSeries ItemsSource="{Binding LogVolumePoints}" Title="Logged Volume (ml)"/>
                         <oxy:LineSeries ItemsSource="{Binding LogTargetPoints}" Title="Logged Target Flow (ml/s)"/>
                         <oxy:LineSeries ItemsSource="{Binding LogFlowPoints}" Title="Logged Flow (ml/s)"/>
-                        <oxy:LineSeries ItemsSource="{Binding LogPressurePoints}" Title="Logged Differencial Pressure"/>
                     </oxy:Plot.Series>
                 </oxy:Plot>
                 <Button Content="Save all channels" HorizontalAlignment="Left" Margin="10,368,0,0" VerticalAlignment="Top" Width="122" Click="Button_Click" Height="20"/>
