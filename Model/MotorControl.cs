@@ -345,7 +345,7 @@ namespace Model
             LoggedTargets = TicksPerSecondToVelocity(LogRecordedTargets);
             // Convert sensorreading to linear position
             LoggedLinearPositions = sensorToLinPosList(LogRecordedLinearPositions);
-            LoggedPressures = uns16ToVDc(LogRecordedPressures);
+            //LoggedPressures = uns16ToVDc(LogRecordedPressures);
 
             //-------------------OLD VERSION----------------------------------------//
             // Ticks to positions                                                   //
@@ -732,6 +732,7 @@ namespace Model
                 LogRecordedPressures[j]         = ModCom.ReadModbus(ch3, 1, false);
                 LogRecordedLinearPositions[j]   = ModCom.ReadModbus(ch4, 1, false);
                 LoggedSensorValues.Add(LogRecordedLinearPositions[j]);
+                LoggedPressures.Add((Double)LogRecordedPressures[j] - 32767);
             }
             //Loop for converting LSB part of int32 to int16
             for (int o = 0; o < 500; o++)
