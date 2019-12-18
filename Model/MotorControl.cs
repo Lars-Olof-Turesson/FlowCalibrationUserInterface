@@ -20,24 +20,12 @@ namespace Model
         ModbusCommunication ModCom { get; set; }
 
 
-        // Define lists to storerecorded values from the motor. OLD SHIT!!!
-        public List<Double> RecordedTimes { get; set; }          // List to store the timestamps from the motor
-        public List<Double> RecordedPositions { get; set; }      // List to store the positions from motor
-        public List<Double> RecordedVelocities { get; set; }     // List to store the velocities from the motor
-        public List<Double> RecordedTorques { get; set; }        // List to store the torques from the motor
-        public List<Double> RecordedPressures { get; set; }      // List to store the measured pressure (Analog input)
-        public List<Double> RecordedLinearPositions { get; set; } // List to store the measured linear position (Analog input)
-
-
         // Define lists for logged values from the motor
         public List<Double> LoggedVelocities { get; set; }       // List to store the positions from motor
         public List<Double> LoggedTargets { get; set; }         // List to store the current from the motor
         public List<Double> LoggedPressures { get; set; }       // List to store the measured pressure (Analog input)
         public List<Double> LoggedLinearPositions { get; set; } // List to store the measured linear position in mm
         public List<int>    LoggedSensorValues    { get; set; } // List to store the measured linear position sensor value
-
-        // Saving the logged homePosition
-        //public Double = LoggedHomePosition { get; set }         // Variable to store the current Homeposition
 
         // Define list for the time vector corresponding to the logged values
         public List<Double> LoggedTime { get; set; }
@@ -46,7 +34,7 @@ namespace Model
         struct Hardware
         {
             //DEFINE HARDWARE PARAMETERS
-            public const Double Pitch                   = 32.01;               // Circumference of gearwheel [mm]
+            public const Double Pitch                   = 32.01;            // Circumference of gearwheel [mm]
             public const Double TicksPerRev             = 4096;             // ticks per revolution (4096 positions on one revolution)
             public const Double VelocityResolution      = 16;               // velocity resolution (position resolution / constant)
             public const Double TimePerSecond           = 2000;             // time register (+2000 each second)
@@ -54,8 +42,6 @@ namespace Model
 
             public const Double PressureGain            = 1;                // Analog in [VDC] to Pressure [?] gain
             public const Double PressureBias            = 0;                // Analog in [VDC] to Pressure [?] bias
-            //public const Double LinearPosGain           = 0.001645;          // Analog in [VDC] to linear position [mm] gain.
-            //public const Double LinearPosBias           = 0;                // Analog in [VDc] to linear position [mm] bias.       
             
             public const Int16  MaxTorque               = 300;              // Maximum allowed torque [mNm]
             
@@ -188,16 +174,6 @@ namespace Model
         {
             ModCom = modCom;
 
-            //--------------------------OLD VERSION---------------------------------------------//
-            // Create empty lists to store values that should be read from the motor controller //
-            RecordedTimes           = new List<Double>();                                       //
-            RecordedPositions       = new List<Double>();                                       //
-            RecordedVelocities      = new List<Double>();                                       //
-            RecordedTorques         = new List<Double>();                                       //
-            RecordedPressures       = new List<Double>();                                       //
-            RecordedLinearPositions = new List<Double>();                                       //
-            //--------------------------------------------------------------------------------- //
-
             // Create empty lists to store values that should be logged from the motor controller
             LoggedVelocities        = new List<Double>();
             LoggedTargets           = new List<Double>();
@@ -259,16 +235,6 @@ namespace Model
             // Create an instance of Stopwatch used to measure the time
             Stopwatch stopWatch = new Stopwatch();
 
-            //----------------------------OLD VERSION---------------------------//
-            // Define lists to save recorded motor values in                    //
-            //Int32 [] MotorRecordedTimes        = new int[sequenceLength];     //
-            Int32[] MotorRecordedPositions       = new Int32[sequenceLength];   //
-            Int32[] MotorRecordedVelocities      = new Int32[sequenceLength];   //
-            Int32[] MotorRecordedTorques         = new Int32[sequenceLength];   //
-            Int32[] MotorRecordedPressures       = new Int32[sequenceLength];   //
-            Int32[] MotorRecordedLinearPositions = new Int32[sequenceLength];   //
-            //----------------------------------------------------------------- //
-
             // Define lists to save logged motor values
             Int32[] LogRecordedVelocities = new Int32[500];
             Int32[] LogRecordedTargets = new Int32[500];
@@ -284,19 +250,11 @@ namespace Model
             // Run the system to its home position
             goToHome(); 
 
-            // Tune the regulator
+            // SET the PID-parameters
             ModCom.RunModbus(300, (Int16)10000); //P
-            ModCom.RunModbus(301, (Int16)1000); //I
-            ModCom.RunModbus(302, (Int16)0); //D
+            ModCom.RunModbus(301, (Int16)1000);  //I
+            ModCom.RunModbus(302, (Int16)0);     //D
 
-            Console.Write("P-parameter:");
-            Console.WriteLine(ModCom.ReadModbus(300, 1, false));
-            Console.Write("I-parameter:");
-            Console.WriteLine(ModCom.ReadModbus(301, 1, false));
-            Console.Write("D-parameter:");
-            Console.WriteLine(ModCom.ReadModbus(302, 1, false));
-            Console.Write("Friction-parameter:");
-            Console.WriteLine(ModCom.ReadModbus(305, 1, false));
 
             // Initializing the motor
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);     // Turn off the motor
@@ -329,14 +287,14 @@ namespace Model
                 }
 
             }
-            // Stop logging
-            //ModCom.RunModbus(Register.LogState, (short)0);
+            
             // Set target to zero
             ModCom.RunModbus(Register.TargetInput, (Int32)0);
             // Turn off the motor
             ModCom.RunModbus(Register.Mode, Mode.MotorOff);
             // Stop counting the time
             stopWatch.Stop();
+
             // Read and save logged values from motor
             saveLoggedValues(LogRecordedVelocities, LogRecordedTargets,
                              LogRecordedPressures, LogRecordedLinearPositions, 1);
@@ -349,16 +307,6 @@ namespace Model
             LoggedLinearPositions = sensorToLinPosList(LogRecordedLinearPositions);
             //LoggedPressures = uns16ToVDc(LogRecordedPressures);
 
-            //-------------------OLD VERSION----------------------------------------//
-            // Ticks to positions                                                   //
-            RecordedPositions = TickToPosition(MotorRecordedPositions);             //
-            // Ticks per second to velocities                                       //
-            RecordedVelocities = TicksPerSecondToVelocity(MotorRecordedVelocities); //
-            // Torque from [mNm] to [Nm]                                            //
-            RecordedTorques = MotorTorquesToTorques(MotorRecordedTorques);          //
-            // Get time in seconds                                                  //
-            RecordedTimes = StopwatchRecordedTimes.ToList<Double>();                //
-            //----------------------------------------------------------------------//
         }
 
 
