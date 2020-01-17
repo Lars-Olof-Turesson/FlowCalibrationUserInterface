@@ -621,6 +621,9 @@ namespace Model
             // Subtract 1 to enable the factor to directly fed to the logging register.
             int RegLogFactor = LogFactor - 1;
 
+            // Empty the time list
+            LoggedTime.Clear();
+
             // Create Time vector used for plotting the logged values
             for (int t = 0; t < 500; t++)
             {

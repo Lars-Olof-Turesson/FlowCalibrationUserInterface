@@ -58,10 +58,16 @@ namespace Model
         }
         public static void SaveTimeAnd5ValuesToCsv(IList<Double> times, IList<Double> datas1, IList<int> datas2, IList<Double> datas3, IList<Double> datas4, IList<Double> datas5, String filePath)
         {
-
+            Console.Write(times.Count());
+            Console.Write(datas1.Count());
+            Console.Write(datas2.Count());
+            Console.Write(datas3.Count());
+            Console.Write(datas4.Count());
+            Console.Write(datas5.Count());
             // Throw an error if the number of values is not equal to the number of times 
             if (times.Count() != datas1.Count())
             {
+
                 throw new Exception("Input lists not of equal length");
             }
 
