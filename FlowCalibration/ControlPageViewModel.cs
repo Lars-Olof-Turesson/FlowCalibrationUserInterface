@@ -290,10 +290,10 @@ namespace FlowCalibration
             }
             
             // Old recordings that are not used
-            List<Double> recordedFlows = ProfileConverter.PositionToFlow(motorControl.RecordedPositions, motorControl.RecordedTimes);
-            List<Double> recordedVolumes = ProfileConverter.PositionToVolume(motorControl.RecordedPositions);
+            //List<Double> recordedFlows = ProfileConverter.PositionToFlow(motorControl.RecordedPositions, motorControl.RecordedTimes);
+            //List<Double> recordedVolumes = ProfileConverter.PositionToVolume(motorControl.RecordedPositions);
             
-            List<Double> recordedTimes = motorControl.RecordedTimes;
+            //List<Double> recordedTimes = motorControl.RecordedTimes;
 
             logTime                    = motorControl.LoggedTime;
             logRecordedLinearPositions = motorControl.LoggedLinearPositions;
@@ -320,7 +320,7 @@ namespace FlowCalibration
             RecordedDateTime = DateTime.Now.ToString();
             RecordedMaxTime = logTime.Last();
             RecordedMaxFlow = logRecordedFlow.Max();
-            RecordedMinFlow = recordedFlows.Min();
+            RecordedMinFlow = logRecordedFlow.Min();
             RecordedMaxVolume = logRecordedVolume.Max();
             RecordedMinVolume = logRecordedVolume.Min();
         }
